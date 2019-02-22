@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Temp files
+.*.sw?
+
