@@ -30,7 +30,17 @@
 *.exe
 *.out
 *.app
+run_unit_tests
 
 # Temp files
 .*.sw?
 
+# CMake
+CMakeFiles
+CMakeCache.txt
+*.cmake
+Makefile
+Testing
+
+# gtest
+lib
