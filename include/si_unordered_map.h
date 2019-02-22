@@ -1,5 +1,7 @@
+#ifndef SI_UNORDERED_MAP_H
+#define SI_UNORDERED_MAP_H
+
 #include <cstdint>
-#include <cassert>
 #include <cmath>
 #include <functional>
 #include <limits>
@@ -901,4 +903,5 @@ bool operator!= (const si::unordered_map<Key, T>& lhs, const si::unordered_map<K
     return !(lhs == rhs);
 }
 
+#endif
 
