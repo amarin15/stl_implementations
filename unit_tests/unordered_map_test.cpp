@@ -317,12 +317,10 @@ void gunit_test_erase()
     EXPECT_TRUE(m.size() == 2);
     EXPECT_TRUE(it == m.begin());
 
-/*
     // (2) const_iterator range
     for (int i = 0; i < 5; i ++)
     {
         std::string s = std::to_string(i);
-        // TODO: fix
         m.emplace(s, s);
     }
 
@@ -343,7 +341,6 @@ void gunit_test_erase()
     num_removed = m.erase(new_key);
     EXPECT_TRUE(num_removed == 0);
     EXPECT_TRUE(m.size() == 5);
-*/
 }
 
 template <template<typename...> class MapType>
@@ -495,11 +492,15 @@ void gunit_test_map_interface()
 }
 
 
-TEST(unordered_map, basic)
+// First confirm the unit tests are correct.
+TEST(std_unordered_map, interface)
 {
-    // Test that the same unit tests pass for both
-    // the std implementation and ours.
     gunit_test_map_interface<std::unordered_map>();
+}
+
+// Validate our implementation using the same tests.
+TEST(si_unordered_map, interface)
+{
     gunit_test_map_interface<si::unordered_map>();
 }
 
