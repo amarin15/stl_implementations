@@ -1,12 +1,30 @@
 language: cpp
+dist: xenial
+notifications:
+  - email: false
 
 compiler:
-  - clang
   - gcc
+
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - CXX_COMPILER="g++-7"
 
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DCMAKE_CXX_COMPILER=$CXX_COMPILER
 
-script: make && ctest --output-on-failure
+script:
+  - export CC=gcc-7
+  - export CXX=g++-7
+  - make && ctest --output-on-failure
+
