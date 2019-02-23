@@ -76,20 +76,20 @@ template <template<typename...> class MapType>
 void test_copy_constructor()
 {
     MapType<unsigned int, int> m1;
-    unsigned int n = 10;
-    for (unsigned int i = 0; i < n; i ++)
+    int n = 10;
+    for (int i = 0; i < n; i ++)
         m1[i] = i * 10;
 
     MapType<unsigned int, int> m2(m1);
 
-    EXPECT_TRUE(m2.size() == m1.size());
-    EXPECT_TRUE(m2.size() == n);
-    EXPECT_TRUE(m2.max_size() == m1.max_size());
-    EXPECT_TRUE(m2.bucket_count() == m1.bucket_count());
-    for (unsigned int i = 0; i < n; i ++)
+    EXPECT_EQ(m2.size(), m1.size());
+    EXPECT_EQ(m2.size(), n);
+    EXPECT_EQ(m2.max_size(), m1.max_size());
+    EXPECT_EQ(m2.bucket_count(), m1.bucket_count());
+    for (int i = 0; i < n; i ++)
     {
-        EXPECT_TRUE(m2[i] == i * 10);
-        EXPECT_TRUE(m2[i] == m1[i]);
+        EXPECT_EQ(m2[i], i * 10);
+        EXPECT_EQ(m2[i], m1[i]);
     }
 }
 
@@ -97,17 +97,17 @@ template <template<typename...> class MapType>
 void test_move_constructor()
 {
     MapType<unsigned int, int> m1;
-    unsigned int n = 5;
-    for (unsigned int i = 0; i < n; i ++)
+    int n = 5;
+    for (int i = 0; i < n; i ++)
         m1[i] = i * 10;
     size_t bucket_count = m1.bucket_count();
 
     MapType<unsigned int, int> m2(std::move(m1));
 
-    EXPECT_TRUE(m2.size() == n);
-    EXPECT_TRUE(m2.bucket_count() == bucket_count);
-    for (unsigned int i = 0; i < n; i ++)
-        EXPECT_TRUE(m2[i] == i * 10);
+    EXPECT_EQ(m2.size(), n);
+    EXPECT_EQ(m2.bucket_count(), bucket_count);
+    for (int i = 0; i < n; i ++)
+        EXPECT_EQ(m2[i], i * 10);
 }
 
 template <template<typename...> class MapType>
@@ -179,8 +179,8 @@ void test_iterators()
     EXPECT_TRUE(m.cbegin() == m.begin());
     EXPECT_TRUE(m.cbegin() == ( const_cast<const MapType<unsigned int, int>&>(m) ).begin());
 
-    EXPECT_TRUE(std::distance(m.begin(), m.end()) == m.size());
-    EXPECT_TRUE(std::distance(m.cbegin(), m.cend()) == m.size());
+    EXPECT_EQ(std::distance(m.begin(),  m.end()) , m.size());
+    EXPECT_EQ(std::distance(m.cbegin(), m.cend()), m.size());
 }
 
 

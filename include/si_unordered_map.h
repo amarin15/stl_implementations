@@ -92,7 +92,7 @@ private:
     public:
         // LegacyForwardIterator
         typedef std::forward_iterator_tag   iterator_category;
-        typedef unordered_map::value_type         value_type;
+        typedef unordered_map::value_type   value_type;
         typedef std::ptrdiff_t              difference_type;
 
         _Node* cur;
@@ -200,6 +200,8 @@ private:
     // Empty buckets will have nullptr.
     std::vector<_NodeBase<_Node>*>  d_buckets;
 
+    hasher                          d_hasher;
+    key_equal                       d_key_equal;
 
 public:
     // ~~ Constructors ~~
@@ -221,12 +223,14 @@ public:
           , InputIt last
           , size_t bucket_count = 0
           , const Hash& hash = Hash()
-          , const key_equal& equal = key_equal()
+          , const key_equal& key_eq = key_equal()
     ) : d_bucket_count(bucket_count == 0 ? std::distance(first, last) : bucket_count)
       , d_size(0)
       , d_max_load_factor(1)
       , d_before_begin(nullptr)
       , d_buckets(d_bucket_count, nullptr)
+      , d_hasher(hash)
+      , d_key_equal(key_eq)
     {
         insert(first, last);
     }
@@ -291,6 +295,8 @@ public:
         d_max_load_factor = other.d_max_load_factor;
         d_before_begin    = std::move(other.d_before_begin);
         d_buckets         = std::move(other.d_buckets);
+        d_hasher          = std::move(other.d_hasher);
+        d_key_equal       = std::move(other.d_key_equal);
 
         // prevent deleting the nodes we moved from other
         other.d_size = 0;
@@ -591,7 +597,7 @@ public:
 
     size_t bucket(const Key& key) const
     {
-        return _bucket_from_hash(hasher{}(key));
+        return _bucket_from_hash(d_hasher(key));
     }
 
 
@@ -691,12 +697,12 @@ public:
 
     hasher hash_function() const
     {
-        return hasher();
+        return d_hasher;
     }
 
     key_equal key_eq() const
     {
-        return key_equal();
+        return d_key_equal;
     }
 
 
@@ -830,7 +836,7 @@ private:
         _Node* cur = prev->next;
         while (cur)
         {
-            if (key_equal{}(cur->value.first, key))
+            if (d_key_equal(cur->value.first, key))
             {
                 prev->next = cur->next;
                 delete cur;
@@ -875,7 +881,7 @@ private:
             // make sure we're still in the same bucket
             if (bucket_num != bucket(cur->value.first))
                 break;
-            if (key_equal{}(cur->value.first, key))
+            if (d_key_equal(cur->value.first, key))
                 return cur;
             cur = cur->next;
         }
