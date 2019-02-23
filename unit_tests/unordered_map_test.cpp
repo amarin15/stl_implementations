@@ -11,7 +11,7 @@
 // Constructors, Capacity
 
 template <template<typename...> class MapType >
-void gunit_test_integral_keys()
+void test_integral_keys()
 {
     MapType<unsigned int, int> m1;
     EXPECT_TRUE(m1.empty());
@@ -23,7 +23,7 @@ void gunit_test_integral_keys()
 }
 
 template <template<typename...> class MapType >
-void gunit_test_string_keys()
+void test_string_keys()
 {
     MapType<std::string, double> empty;
 }
@@ -42,7 +42,7 @@ struct HashableKeyHash {
 };
 
 template <template<typename...> class MapType>
-void gunit_test_custom_hashable_keys()
+void test_custom_hashable_keys()
 {
     MapType<HashableKey, float, HashableKeyHash> empty;
 }
@@ -51,14 +51,14 @@ class NonHashableKey
 {};
 
 template <template<typename...> class MapType>
-void gunit_fail_custom_non_hashable_keys()
+void fail_custom_non_hashable_keys()
 {
     // uncomment to confirm this will not compile
     // MapType<NonHashableKey, float> empty;
 }
 
 template <template<typename...> class MapType>
-void gunit_test_from_range()
+void test_from_range()
 {
     std::vector<std::pair<int, int>> v(5, std::make_pair(2, 3));
     v[1].first  = 7;
@@ -73,7 +73,7 @@ void gunit_test_from_range()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_copy_constructor()
+void test_copy_constructor()
 {
     MapType<unsigned int, int> m1;
     unsigned int n = 10;
@@ -94,7 +94,7 @@ void gunit_test_copy_constructor()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_move_constructor()
+void test_move_constructor()
 {
     MapType<unsigned int, int> m1;
     unsigned int n = 5;
@@ -111,7 +111,7 @@ void gunit_test_move_constructor()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_from_initializer_list()
+void test_from_initializer_list()
 {
     MapType<unsigned int, int> m { {1, 10}, {1, 100}, {2, 20}, {3, 30} };
     EXPECT_TRUE(m.size() == 3);
@@ -123,24 +123,24 @@ void gunit_test_from_initializer_list()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_constructors()
+void test_constructors()
 {
-    gunit_test_integral_keys<MapType>();         // (1)
-    gunit_test_string_keys<MapType>();
+    test_integral_keys<MapType>();         // (1)
+    test_string_keys<MapType>();
 
-    gunit_test_custom_hashable_keys<MapType>();
-    gunit_fail_custom_non_hashable_keys<MapType>();
+    test_custom_hashable_keys<MapType>();
+    fail_custom_non_hashable_keys<MapType>();
 
-    gunit_test_from_range<MapType>();            // (2)
+    test_from_range<MapType>();            // (2)
 
-    gunit_test_copy_constructor<MapType>();      // (3)
-    gunit_test_move_constructor<MapType>();      // (4)
+    test_copy_constructor<MapType>();      // (3)
+    test_move_constructor<MapType>();      // (4)
 
-    gunit_test_from_initializer_list<MapType>(); // (5)
+    test_from_initializer_list<MapType>(); // (5)
 }
 
 template <template<typename...> class MapType>
-void gunit_test_assignment_operator()
+void test_assignment_operator()
 {
     MapType<unsigned int, int> m1 { {11, 101}, {12, 202}, {13, 303} };
 
@@ -171,7 +171,7 @@ void gunit_test_assignment_operator()
 // Iterators
 
 template <template<typename...> class MapType>
-void gunit_test_iterators()
+void test_iterators()
 {
     MapType<unsigned int, int> m { {1, 10}, {2, 20}, {3, 30} };
 
@@ -187,7 +187,7 @@ void gunit_test_iterators()
 // Modifiers
 
 template <template<typename...> class MapType>
-void gunit_test_clear()
+void test_clear()
 {
     MapType<unsigned int, int> m { {1, 10}, {2, 20}, {3, 30} };
     const size_t bucket_count_before_clear = m.bucket_count();
@@ -199,7 +199,7 @@ void gunit_test_clear()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_insert()
+void test_insert()
 {
     MapType<std::string, std::string> m { {"10", "10"}, {"20", "20"}, {"30", "30"} };
     using value_type = typename decltype(m)::value_type;
@@ -278,7 +278,7 @@ void gunit_test_insert()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_emplace()
+void test_emplace()
 {
     MapType<std::string, std::string> m { {"10", "10"}, {"20", "20"}, {"30", "30"} };
     using value_type = typename decltype(m)::value_type;
@@ -306,7 +306,7 @@ void gunit_test_emplace()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_erase()
+void test_erase()
 {
     MapType<std::string, std::string> m { {"10", "10"}, {"20", "20"}, {"30", "30"} };
     using iterator = typename decltype(m)::iterator;
@@ -344,7 +344,7 @@ void gunit_test_erase()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_swap()
+void test_swap()
 {
     MapType<std::string, std::string> m1 { {"10", "10"}, {"20", "20"}, {"30", "30"} };
     MapType<std::string, std::string> m2;
@@ -354,19 +354,19 @@ void gunit_test_swap()
 }
 
 template <template<typename...> class MapType>
-void gunit_test_modifiers()
+void test_modifiers()
 {
-    gunit_test_clear<MapType>();
-    gunit_test_insert<MapType>();
-    gunit_test_emplace<MapType>();
-    gunit_test_erase<MapType>();
-    gunit_test_swap<MapType>();
+    test_clear<MapType>();
+    test_insert<MapType>();
+    test_emplace<MapType>();
+    test_erase<MapType>();
+    test_swap<MapType>();
 }
 
 
 // Lookup
 template <template<typename...> class MapType>
-void gunit_test_lookup()
+void test_lookup()
 {
     MapType<std::string, std::string> m;
     using iterator = typename decltype(m)::iterator;
@@ -422,7 +422,7 @@ void gunit_test_lookup()
 
 // Bucket interface
 template <template<typename...> class MapType>
-void gunit_test_bucket_interface()
+void test_bucket_interface()
 {
     MapType<int, int> m(1);
 
@@ -435,7 +435,7 @@ void gunit_test_bucket_interface()
 
 // Hash policy
 template <template<typename...> class MapType>
-void gunit_test_hash_policy()
+void test_hash_policy()
 {
     MapType<int, int> m;
 
@@ -452,7 +452,7 @@ void gunit_test_hash_policy()
 
 // Observers
 template <template<typename...> class MapType>
-void gunit_test_observers()
+void test_observers()
 {
     MapType<int, int> m;
     EXPECT_TRUE((std::is_same<decltype(m.key_eq()),        typename decltype(m)::key_equal>::value));
@@ -462,7 +462,7 @@ void gunit_test_observers()
 
 // Non-member functions
 template <template<typename...> class MapType>
-void gunit_test_non_member_functions()
+void test_non_member_functions()
 {
     MapType<int, int> m1{ {1, 1}, {2, 2} };
     MapType<int, int> m2{ {2, 2}, {1, 1} };
@@ -478,29 +478,29 @@ void gunit_test_non_member_functions()
 
 // Main correctness test
 template <template<typename...> class MapType>
-void gunit_test_map_interface()
+void test_map_interface()
 {
-    gunit_test_constructors<MapType>();
-    gunit_test_assignment_operator<MapType>();
-    gunit_test_iterators<MapType>();
-    gunit_test_modifiers<MapType>();
-    gunit_test_lookup<MapType>();
-    gunit_test_bucket_interface<MapType>();
-    gunit_test_hash_policy<MapType>();
-    gunit_test_observers<MapType>();
-    gunit_test_non_member_functions<MapType>();
+    test_constructors<MapType>();
+    test_assignment_operator<MapType>();
+    test_iterators<MapType>();
+    test_modifiers<MapType>();
+    test_lookup<MapType>();
+    test_bucket_interface<MapType>();
+    test_hash_policy<MapType>();
+    test_observers<MapType>();
+    test_non_member_functions<MapType>();
 }
 
 
 // First confirm the unit tests are correct.
 TEST(std_unordered_map, interface)
 {
-    gunit_test_map_interface<std::unordered_map>();
+    test_map_interface<std::unordered_map>();
 }
 
-// Validate our implementation using the same tests.
+// Then validate our implementation using the same tests.
 TEST(si_unordered_map, interface)
 {
-    gunit_test_map_interface<si::unordered_map>();
+    test_map_interface<si::unordered_map>();
 }
 
