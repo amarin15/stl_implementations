@@ -451,10 +451,12 @@ public:
             // Find first element before it.
             // If first is valid, so should be the sentinel.
             const_iterator cur_cit = _ConstIterator(before_first->next);
+            bool first_in_bucket = true;
             while (cur_cit && cur_cit != first)
             {
                 ++ cur_cit;
                 before_first = before_first->next;
+                first_in_bucket = false;
             }
 
             if (cur_cit == first)
@@ -465,24 +467,35 @@ public:
                     _Node* to_delete = cur_cit.cur;
                     size_t bucket_num_cur = bucket(cur_cit->first);
 
-                    ++ cur_cit;
+                    ++ cur_cit; // increment using cur_cit.cur before we delete it
                     delete to_delete;
                     -- d_size;
 
-                    // We always delete the first element in a bucket. If its next is
-                    // in a different bucket, it means it's also the last, in which case
-                    // this bucket will remain empty, so we need to delete the sentinel.
+                    // If this was the last element in the bucket, we need to update
+                    // the sentinel for the next bucket.
                     if (cur_cit)
                     {
-                        size_t bucket_num_next = bucket(cur_cit->first);
+                        const size_t bucket_num_next = bucket(cur_cit->first);
                         if (bucket_num_next != bucket_num_cur)
-                            d_buckets[bucket_num_cur] = nullptr;
+                        {
+                            d_buckets[bucket_num_next] = before_first;
+
+                            // If it was also the first element in the bucket (so the only one)
+                            // we need to set the sentinel for the current bucket to nullptr,
+                            // in order to mark it as empty.
+                            if (first_in_bucket)
+                                d_buckets[bucket_num_cur] = nullptr;
+
+                            // At the next step we will be in a different bucket from before_first
+                            // and we will always delete the first element in that bucket.
+                            first_in_bucket = true;
+                        }
                     }
                     else
-                        break;
+                        break; // nothing left to delete
                 }
 
-                // point next of node before first to last
+                // Point next of node before first to last.
                 if (last && cur_cit == last)
                     before_first->next = last.cur;
                 else
@@ -798,7 +811,6 @@ private:
             sentinel->next = cur;
 
         ++ d_size;
-
         return std::make_pair(iterator(cur), true);
     }
 
@@ -838,6 +850,7 @@ private:
             return iterator(nullptr);
 
         _Node* cur = prev->next;
+        bool first_in_bucket = true;
         while (cur)
         {
             if (d_key_equal(cur->value.first, key))
@@ -846,10 +859,22 @@ private:
                 delete cur;
                 -- d_size;
 
-                // If it was the only element in the bucket, we need to set the
-                // sentinel to nullptr, in order to mark the bucket as empty.
-                if (prev->next != nullptr && bucket(prev->next->value.first) != bucket_num)
-                    d_buckets[bucket_num] = nullptr;
+                // If this was the last element in the bucket, we need to update
+                // the sentinel for the next bucket.
+                if (prev->next != nullptr)
+                {
+                    const size_t next_bucket_num = bucket(prev->next->value.first);
+                    if (next_bucket_num != bucket_num)
+                    {
+                        d_buckets[next_bucket_num] = prev;
+
+                        // If it was also the first element in the bucket (so the only one)
+                        // we need to set the sentinel for the current bucket to nullptr,
+                        // in order to mark it as empty.
+                        if (first_in_bucket)
+                            d_buckets[bucket_num] = nullptr;
+                    }
+                }
 
                 return iterator(prev->next);
             }
@@ -859,6 +884,7 @@ private:
 
             prev = cur;
             cur = cur->next;
+            first_in_bucket = false;
         }
 
         // this should not happen if pos is valid
@@ -876,7 +902,7 @@ private:
         return nullptr;
     }
 
-    // caller's responsibility to check sentinel is not null
+    // Caller's responsibility to check sentinel is not null.
     _Node* _find_node_ptr(const Key& key, _NodeBase<_Node>* sentinel, const size_t bucket_num) const
     {
         _Node* cur = sentinel->next;

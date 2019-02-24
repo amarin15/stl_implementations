@@ -306,7 +306,7 @@ void test_emplace()
 }
 
 template <template<typename...> class MapType>
-void test_erase()
+void test_erase_interface()
 {
     MapType<std::string, std::string> m { {"10", "10"}, {"20", "20"}, {"30", "30"} };
     using iterator = typename decltype(m)::iterator;
@@ -341,6 +341,53 @@ void test_erase()
     num_removed = m.erase(new_key);
     EXPECT_TRUE(num_removed == 0);
     EXPECT_TRUE(m.size() == 5);
+}
+
+template <template<typename...> class MapType>
+void test_erase_sentinels()
+{
+    // Test sentinel logic after deleting buckets with only 1 element.
+    MapType<std::string, std::string> m;
+    std::string val("666");
+    int max_keys = 200;
+    for (int i = 0; i < max_keys; i ++)
+        m.emplace(std::to_string(i), val);
+    EXPECT_EQ(m.size(), max_keys);
+
+    for (int i = 50 ; i < 100; i ++)
+        m.erase(std::to_string(i));
+    EXPECT_EQ(m.size(), max_keys - 50);
+
+    int num_keys = 0;
+    for (int i = 0; i < max_keys; i ++)
+    {
+        const std::string key(std::to_string(i));
+        if (m.find(key) != m.end())
+            ++ num_keys;
+    }
+    EXPECT_EQ(num_keys, m.size());
+
+    m.erase(std::next(m.cbegin(), 75), m.cend());
+    EXPECT_EQ(m.size(), num_keys - 75);
+
+    for (int i = max_keys; i < max_keys + 125; i ++)
+        m.emplace(std::to_string(i), val);
+    num_keys = 0;
+    for (int i = 0; i < max_keys + 125; i ++)
+    {
+        const std::string key(std::to_string(i));
+        if (m.find(key) != m.end())
+            ++ num_keys;
+    }
+    EXPECT_EQ(num_keys, m.size());
+    EXPECT_EQ(num_keys, max_keys);
+}
+
+template <template<typename...> class MapType>
+void test_erase()
+{
+    test_erase_interface<MapType>();
+    test_erase_sentinels<MapType>();
 }
 
 template <template<typename...> class MapType>
