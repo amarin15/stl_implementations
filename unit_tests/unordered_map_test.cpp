@@ -444,6 +444,10 @@ void test_hash_policy()
 
     m.rehash(10);
     EXPECT_TRUE(m.bucket_count() >= 10);
+    // Initially we only had 1 bucket, so inserting 2 elements would
+    // segfault if d_buckets has a size smaller than the new bucket count.
+    m.emplace(1, 1);
+    m.emplace(2, 2);
 
     m.reserve(100);
     EXPECT_TRUE(m.bucket_count() >= 100);

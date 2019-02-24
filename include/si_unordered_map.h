@@ -634,7 +634,10 @@ public:
         d_bucket_count = std::max(count, size_t(std::ceil(d_size / d_max_load_factor)));
 
         if (d_size == 0)
+        {
+            d_buckets.resize(d_bucket_count, nullptr);
             return;
+        }
 
         // Create a new unordered_map with a different bucket count and move the current
         // unordered_map's elements to it.
