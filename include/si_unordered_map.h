@@ -290,6 +290,7 @@ public:
 
     unordered_map<Key, T>& operator=(unordered_map<Key, T>&& other)
     {
+        _clear();
         d_bucket_count    = other.d_bucket_count;
         d_size            = other.d_size;
         d_max_load_factor = other.d_max_load_factor;
