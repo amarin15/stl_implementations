@@ -1,0 +1,509 @@
+<html>
+    <head>
+        <!--[if IE]><script language="javascript" type="text/javascript" src="./excanvas.min.js"></script><![endif]-->
+        <script language="javascript" type="text/javascript" src="./jquery.js"></script>
+        <script language="javascript" type="text/javascript" src="./jquery.flot.js"></script>
+    </head>
+    <body>
+
+<script>
+    $("<div id='tooltip'></div>").css({
+                                    position: "absolute",
+                                    display: "none",
+                                    border: "1px solid #fdd",
+                                    padding: "2px",
+                                    "background-color": "#fee",
+                                    opacity: 0.80
+                                  }).appendTo("body");
+                
+    series_settings = {
+        lines: { show: true },
+        points: { show: true }
+    };
+
+    grid_settings = { tickColor: '#ddd', hoverable: true };
+
+    xaxis_settings = {
+        tickFormatter: function(num, obj) { 
+                           if(num >= 1000*1000) {
+                               return parseFloat(num/(1000*1000)).toFixed(2) + 'M'; 
+                           }
+                           else {
+                               return parseInt(num/1000) + 'k'; 
+                           }
+                       }
+    };
+
+    yaxis_runtime_settings = {
+        tickFormatter: function(num, obj) { return (+num.toFixed(2)) + ' sec.'; }
+    };
+
+    yaxis_memory_settings = {
+        tickFormatter: function(num, obj) { return parseInt(num/1024/1024) + 'MiB'; }
+    };
+
+    legend_settings = {
+        position: 'nw',
+        backgroundOpacity: 0
+    };
+
+    runtime_settings = {
+        series: series_settings,
+        grid: grid_settings,
+        xaxis: xaxis_settings,
+        yaxis: yaxis_runtime_settings,
+        legend: legend_settings
+    };
+
+    memory_settings = {
+        series: series_settings,
+        grid: grid_settings,
+        xaxis: xaxis_settings,
+        yaxis: yaxis_memory_settings,
+        legend: legend_settings
+    };
+
+    chart_data = {"read_miss_random_full_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.010883, 0.76], [500000, 0.063724, 0.95], [800000, 0.101114, 0.76], [1100000, 0.111063, 0.52], [1400000, 0.171077, 0.67], [1700000, 0.251816, 0.81], [2000000, 0.337855, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.012312, 0.97], [500000, 0.050995, 0.61], [800000, 0.126625, 0.97], [1100000, 0.122389, 0.67], [1400000, 0.215747, 0.85], [1700000, 0.195167, 0.52], [2000000, 0.245717, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.002426, 0.38], [500000, 0.011517, 0.48], [800000, 0.016206, 0.38], [1100000, 0.018005, 0.26], [1400000, 0.027314, 0.33], [1700000, 0.04471, 0.41], [2000000, 0.064544, 0.48]], "label": "google::dense_hash_map"}], 
+"iteration_random_full_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.002693, 0.76], [500000, 0.014888, 0.95], [800000, 0.029816, 0.76], [1100000, 0.051288, 0.52], [1400000, 0.066017, 0.67], [1700000, 0.077627, 0.81], [2000000, 0.095131, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.002954, 0.97], [500000, 0.019106, 0.61], [800000, 0.034929, 0.97], [1100000, 0.059364, 0.67], [1400000, 0.073204, 0.85], [1700000, 0.103884, 0.52], [2000000, 0.117415, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.00199, 0.38], [500000, 0.004928, 0.48], [800000, 0.009156, 0.38], [1100000, 0.013105, 0.26], [1400000, 0.01726, 0.33], [1700000, 0.020862, 0.41], [2000000, 0.021824, 0.48]], "label": "google::dense_hash_map"}], 
+"delete_random_full_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.047365, 0.0], [500000, 0.224864, 0.0], [800000, 0.417371, 0.0], [1100000, 0.639949, 0.0], [1400000, 0.831211, 0.0], [1700000, 1.02412, 0.0], [2000000, 1.25437, 0.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.052018, 0.0], [500000, 0.258015, 0.0], [800000, 0.456436, 0.0], [1100000, 0.698741, 0.0], [1400000, 0.915106, 0.0], [1700000, 1.13512, 0.0], [2000000, 1.34319, 0.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.002324, 0.0], [500000, 0.009025, 0.0], [800000, 0.015228, 0.0], [1100000, 0.02175, 0.0], [1400000, 0.02965, 0.0], [1700000, 0.041998, 0.0], [2000000, 0.048236, 0.0]], "label": "google::dense_hash_map"}], 
+"insert_random_full_reserve_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.025005, 1.0], [500000, 0.091446, 1.0], [800000, 0.1788, 1.0], [1100000, 0.243511, 1.0], [1400000, 0.325626, 1.0], [1700000, 0.429142, 1.0], [2000000, 0.512702, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.021722, 1.0], [500000, 0.089669, 1.0], [800000, 0.176551, 1.0], [1100000, 0.233011, 1.0], [1400000, 0.318725, 1.0], [1700000, 0.411773, 1.0], [2000000, 0.524127, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.007365, 0.38], [500000, 0.026187, 0.48], [800000, 0.050798, 0.38], [1100000, 0.068104, 0.26], [1400000, 0.088604, 0.33], [1700000, 0.105573, 0.41], [2000000, 0.126426, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_random_full_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 0.76], [500000, 0, 0.95], [800000, 0, 0.76], [1100000, 0, 0.52], [1400000, 0, 0.67], [1700000, 0, 0.81], [2000000, 0, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 0.97], [500000, 0, 0.61], [800000, 0, 0.97], [1100000, 0, 0.67], [1400000, 0, 0.85], [1700000, 0, 0.52], [2000000, 0, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"delete_small_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.073275, 0.0], [500000, 0.277235, 0.0], [800000, 0.554458, 0.0], [1100000, 0.786014, 0.0], [1400000, 0.965426, 0.0], [1700000, 1.21213, 0.0], [2000000, 1.54065, 0.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.0771, 0.0], [500000, 0.297015, 0.0], [800000, 0.568479, 0.0], [1100000, 0.82195, 0.0], [1400000, 0.99713, 0.0], [1700000, 1.25631, 0.0], [2000000, 1.58974, 0.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.017655, 0.0], [500000, 0.055753, 0.0], [800000, 0.103356, 0.0], [1100000, 0.15215, 0.0], [1400000, 0.184565, 0.0], [1700000, 0.234658, 0.0], [2000000, 0.291585, 0.0]], "label": "google::dense_hash_map"}], 
+"insert_small_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.050898, 0.76], [500000, 0.172134, 0.95], [800000, 0.352844, 0.76], [1100000, 0.68588, 0.52], [1400000, 0.756059, 0.67], [1700000, 0.851394, 0.81], [2000000, 1.02258, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.037538, 0.97], [500000, 0.18499, 0.61], [800000, 0.28714, 0.97], [1100000, 0.485069, 0.67], [1400000, 0.619225, 0.85], [1700000, 0.984457, 0.52], [2000000, 1.07598, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.040106, 0.38], [500000, 0.105869, 0.48], [800000, 0.202575, 0.38], [1100000, 0.401623, 0.26], [1400000, 0.400893, 0.33], [1700000, 0.44929, 0.41], [2000000, 0.491169, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_small_string_reserve_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.033131, 1.0], [500000, 0.120672, 1.0], [800000, 0.211026, 1.0], [1100000, 0.334991, 1.0], [1400000, 0.407033, 1.0], [1700000, 0.503783, 1.0], [2000000, 0.600696, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.030273, 1.0], [500000, 0.111558, 1.0], [800000, 0.202541, 1.0], [1100000, 0.330722, 1.0], [1400000, 0.394156, 1.0], [1700000, 0.485277, 1.0], [2000000, 0.584646, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.024734, 0.38], [500000, 0.070346, 0.48], [800000, 0.127002, 0.38], [1100000, 0.217194, 0.26], [1400000, 0.248962, 0.33], [1700000, 0.292603, 0.41], [2000000, 0.344849, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_string_reserve_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.077428, 1.0], [500000, 0.238504, 1.0], [800000, 0.424157, 1.0], [1100000, 0.643569, 1.0], [1400000, 0.731694, 1.0], [1700000, 0.879734, 1.0], [2000000, 1.11164, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.07287, 1.0], [500000, 0.22584, 1.0], [800000, 0.402777, 1.0], [1100000, 0.598656, 1.0], [1400000, 0.699381, 1.0], [1700000, 0.846673, 1.0], [2000000, 1.05979, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.063918, 0.38], [500000, 0.176914, 0.48], [800000, 0.300562, 0.38], [1100000, 0.420845, 0.26], [1400000, 0.52642, 0.33], [1700000, 0.633135, 0.41], [2000000, 0.881754, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_string_reserve_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"read_miss_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.042946, 0.76], [500000, 0.16357, 0.95], [800000, 0.246209, 0.76], [1100000, 0.273028, 0.52], [1400000, 0.390156, 0.67], [1700000, 0.544809, 0.81], [2000000, 0.756764, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.034251, 0.97], [500000, 0.088603, 0.61], [800000, 0.194978, 0.97], [1100000, 0.256681, 0.67], [1400000, 0.347423, 0.85], [1700000, 0.340634, 0.52], [2000000, 0.444571, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.018958, 0.38], [500000, 0.067199, 0.48], [800000, 0.095958, 0.38], [1100000, 0.117697, 0.26], [1400000, 0.163625, 0.33], [1700000, 0.23411, 0.41], [2000000, 0.335823, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_small_string_reserve_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"read_random_full_after_delete_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.011437, 0.38], [500000, 0.052329, 0.48], [800000, 0.089727, 0.38], [1100000, 0.121111, 0.26], [1400000, 0.163026, 0.33], [1700000, 0.219619, 0.41], [2000000, 0.30823, 0.38]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.009612, 0.49], [500000, 0.039682, 0.3], [800000, 0.081993, 0.49], [1100000, 0.114755, 0.33], [1400000, 0.150719, 0.43], [1700000, 0.146805, 0.26], [2000000, 0.2088, 0.3]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.004443, 0.19], [500000, 0.017957, 0.24], [800000, 0.026871, 0.19], [1100000, 0.033124, 0.13], [1400000, 0.045606, 0.17], [1700000, 0.065892, 0.2], [2000000, 0.091659, 0.24]], "label": "google::dense_hash_map"}], 
+"read_miss_small_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.022989, 0.76], [500000, 0.10942, 0.95], [800000, 0.163587, 0.76], [1100000, 0.196533, 0.52], [1400000, 0.279807, 0.67], [1700000, 0.407839, 0.81], [2000000, 0.544245, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.022239, 0.97], [500000, 0.079011, 0.61], [800000, 0.172521, 0.97], [1100000, 0.224015, 0.67], [1400000, 0.304937, 0.85], [1700000, 0.315048, 0.52], [2000000, 0.394882, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.011888, 0.38], [500000, 0.041353, 0.48], [800000, 0.063387, 0.38], [1100000, 0.083387, 0.26], [1400000, 0.11526, 0.33], [1700000, 0.153872, 0.41], [2000000, 0.209565, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_random_shuffle_range_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.02598, 0.76], [500000, 0.081278, 0.95], [800000, 0.1889, 0.76], [1100000, 0.355942, 0.52], [1400000, 0.482188, 0.67], [1700000, 0.490146, 0.81], [2000000, 0.536349, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.020185, 0.97], [500000, 0.088115, 0.61], [800000, 0.144158, 0.97], [1100000, 0.311115, 0.67], [1400000, 0.381529, 0.85], [1700000, 0.4712, 0.52], [2000000, 0.587656, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.012971, 0.38], [500000, 0.031823, 0.48], [800000, 0.06617, 0.38], [1100000, 0.114316, 0.26], [1400000, 0.129285, 0.33], [1700000, 0.138659, 0.41], [2000000, 0.152316, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_random_full_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.038547, 0.76], [500000, 0.125387, 0.95], [800000, 0.275023, 0.76], [1100000, 0.528946, 0.52], [1400000, 0.535247, 0.67], [1700000, 0.625699, 0.81], [2000000, 0.735192, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.029866, 0.97], [500000, 0.151359, 0.61], [800000, 0.254478, 0.97], [1100000, 0.481908, 0.67], [1400000, 0.542373, 0.85], [1700000, 0.884765, 0.52], [2000000, 0.993541, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.014705, 0.38], [500000, 0.037231, 0.48], [800000, 0.075722, 0.38], [1100000, 0.147887, 0.26], [1400000, 0.144578, 0.33], [1700000, 0.163323, 0.41], [2000000, 0.181054, 0.48]], "label": "google::dense_hash_map"}], 
+"read_random_full_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.010778, 0.76], [500000, 0.054726, 0.95], [800000, 0.09686, 0.76], [1100000, 0.133017, 0.52], [1400000, 0.175198, 0.67], [1700000, 0.231494, 0.81], [2000000, 0.300628, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.008775, 0.97], [500000, 0.038017, 0.61], [800000, 0.078956, 0.97], [1100000, 0.105056, 0.67], [1400000, 0.144024, 0.85], [1700000, 0.166422, 0.52], [2000000, 0.206523, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.001759, 0.38], [500000, 0.007479, 0.48], [800000, 0.012104, 0.38], [1100000, 0.015357, 0.26], [1400000, 0.02128, 0.33], [1700000, 0.03007, 0.41], [2000000, 0.038671, 0.48]], "label": "google::dense_hash_map"}], 
+"read_small_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.037527, 0.76], [500000, 0.154827, 0.95], [800000, 0.266905, 0.76], [1100000, 0.391868, 0.52], [1400000, 0.49984, 0.67], [1700000, 0.621866, 0.81], [2000000, 0.764621, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.033076, 0.97], [500000, 0.142441, 0.61], [800000, 0.256973, 0.97], [1100000, 0.382229, 0.67], [1400000, 0.478852, 0.85], [1700000, 0.580552, 0.52], [2000000, 0.716695, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.014814, 0.38], [500000, 0.04955, 0.48], [800000, 0.086906, 0.38], [1100000, 0.134291, 0.26], [1400000, 0.16491, 0.33], [1700000, 0.205385, 0.41], [2000000, 0.255376, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_string_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 0.76], [500000, 0, 0.95], [800000, 0, 0.76], [1100000, 0, 0.52], [1400000, 0, 0.67], [1700000, 0, 0.81], [2000000, 0, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 0.97], [500000, 0, 0.61], [800000, 0, 0.97], [1100000, 0, 0.67], [1400000, 0, 0.85], [1700000, 0, 0.52], [2000000, 0, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"read_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.083236, 0.76], [500000, 0.247412, 0.95], [800000, 0.411895, 0.76], [1100000, 0.550632, 0.52], [1400000, 0.714595, 0.67], [1700000, 0.887757, 0.81], [2000000, 1.139, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.062695, 0.97], [500000, 0.174828, 0.61], [800000, 0.334827, 0.97], [1100000, 0.369426, 0.67], [1400000, 0.603748, 0.85], [1700000, 0.672463, 0.52], [2000000, 0.847136, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.036223, 0.38], [500000, 0.112786, 0.48], [800000, 0.174583, 0.38], [1100000, 0.24724, 0.26], [1400000, 0.312018, 0.33], [1700000, 0.401288, 0.41], [2000000, 0.519965, 0.48]], "label": "google::dense_hash_map"}], 
+"insert_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.122606, 0.76], [500000, 0.35289, 0.95], [800000, 0.665981, 0.76], [1100000, 1.23438, 0.52], [1400000, 1.2636, 0.67], [1700000, 1.47468, 0.81], [2000000, 1.70944, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.086257, 0.97], [500000, 0.322563, 0.61], [800000, 0.537485, 0.97], [1100000, 0.827745, 0.67], [1400000, 0.961858, 0.85], [1700000, 1.39784, 0.52], [2000000, 1.61022, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.135909, 0.38], [500000, 0.341642, 0.48], [800000, 0.726475, 0.38], [1100000, 1.41208, 0.26], [1400000, 1.41547, 0.33], [1700000, 1.52734, 0.41], [2000000, 1.69603, 0.48]], "label": "google::dense_hash_map"}], 
+"delete_string_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.155906, 0.0], [500000, 0.487923, 0.0], [800000, 0.831405, 0.0], [1100000, 1.15191, 0.0], [1400000, 1.50841, 0.0], [1700000, 1.8811, 0.0], [2000000, 2.40284, 0.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.152394, 0.0], [500000, 0.476342, 0.0], [800000, 0.839508, 0.0], [1100000, 1.14898, 0.0], [1400000, 1.5484, 0.0], [1700000, 1.8308, 0.0], [2000000, 2.32407, 0.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.045781, 0.0], [500000, 0.136502, 0.0], [800000, 0.219585, 0.0], [1100000, 0.293681, 0.0], [1400000, 0.382805, 0.0], [1700000, 0.478462, 0.0], [2000000, 0.611114, 0.0]], "label": "google::dense_hash_map"}], 
+"insert_small_string_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 0.76], [500000, 0, 0.95], [800000, 0, 0.76], [1100000, 0, 0.52], [1400000, 0, 0.67], [1700000, 0, 0.81], [2000000, 0, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 0.97], [500000, 0, 0.61], [800000, 0, 0.97], [1100000, 0, 0.67], [1400000, 0, 0.85], [1700000, 0, 0.52], [2000000, 0, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"read_random_shuffle_range_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.004461, 0.76], [500000, 0.02113, 0.95], [800000, 0.041597, 0.76], [1100000, 0.063004, 0.52], [1400000, 0.08332, 0.67], [1700000, 0.111492, 0.81], [2000000, 0.133851, 0.95]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.00239, 0.97], [500000, 0.012232, 0.61], [800000, 0.022884, 0.97], [1100000, 0.033949, 0.67], [1400000, 0.039522, 0.85], [1700000, 0.064481, 0.52], [2000000, 0.06144, 0.61]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.000609, 0.38], [500000, 0.003524, 0.48], [800000, 0.006913, 0.38], [1100000, 0.011245, 0.26], [1400000, 0.0131, 0.33], [1700000, 0.016614, 0.41], [2000000, 0.020159, 0.48]], "label": "google::dense_hash_map"}], 
+"read_string_after_delete_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.022795, 0.38], [500000, 0.086545, 0.48], [800000, 0.152992, 0.38], [1100000, 0.198975, 0.26], [1400000, 0.264695, 0.33], [1700000, 0.379374, 0.41], [2000000, 0.47611, 0.48]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.017893, 0.49], [500000, 0.070626, 0.3], [800000, 0.147322, 0.49], [1100000, 0.181796, 0.33], [1400000, 0.250572, 0.43], [1700000, 0.309421, 0.26], [2000000, 0.379053, 0.3]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.029154, 0.19], [500000, 0.09044, 0.24], [800000, 0.146051, 0.19], [1100000, 0.180954, 0.13], [1400000, 0.245346, 0.17], [1700000, 0.342748, 0.2], [2000000, 0.435171, 0.24]], "label": "google::dense_hash_map"}], 
+"insert_random_full_reserve_memory": [{"program": "si_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0, 1.0], [500000, 0, 1.0], [800000, 0, 1.0], [1100000, 0, 1.0], [1400000, 0, 1.0], [1700000, 0, 1.0], [2000000, 0, 1.0]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0, 0.38], [500000, 0, 0.48], [800000, 0, 0.38], [1100000, 0, 0.26], [1400000, 0, 0.33], [1700000, 0, 0.41], [2000000, 0, 0.48]], "label": "google::dense_hash_map"}], 
+"read_small_string_after_delete_runtime": [{"program": "si_unordered_map", "data": [[200000, 0.027222, 0.38], [500000, 0.109629, 0.48], [800000, 0.18126, 0.38], [1100000, 0.263495, 0.26], [1400000, 0.341544, 0.33], [1700000, 0.442647, 0.41], [2000000, 0.567634, 0.48]], "label": "si::unordered_map"}, {"program": "std_unordered_map", "data": [[200000, 0.024301, 0.49], [500000, 0.095755, 0.3], [800000, 0.186741, 0.49], [1100000, 0.257603, 0.33], [1400000, 0.32883, 0.43], [1700000, 0.389505, 0.26], [2000000, 0.49082, 0.3]], "label": "std::unordered_map"}, {"program": "google_dense_hash_map", "data": [[200000, 0.018615, 0.19], [500000, 0.061117, 0.24], [800000, 0.099527, 0.19], [1100000, 0.134411, 0.13], [1400000, 0.174094, 0.17], [1700000, 0.230328, 0.2], [2000000, 0.316384, 0.24]], "label": "google::dense_hash_map"}]};
+
+programs = {
+ "si_unordered_map": "si::unordered_map", 
+ "std_unordered_map": "std::unordered_map", 
+ "google_dense_hash_map": "google::dense_hash_map"
+};
+
+default_programs_show = ['si_unordered_map', 'std_unordered_map', 'google_dense_hash_map'];
+
+
+    function plot_chart(dataset, chart_container, choices_container, chart_settings, redraw_only = false) {
+        if(!redraw_only) {
+            // Set colors
+            var color = 0;
+            $.each(dataset, function(key, val) {
+                val.color = color;
+                color++;
+            });
+            
+            // Insert checkboxes 
+            $.each(dataset, function(key, val) {
+                checked = '';
+                if(default_programs_show.indexOf(val.program) > -1) {
+                    checked = 'checked';
+                }
+                
+                $(choices_container).append(
+                    "<li><input type='checkbox' value='" + key +"' name='" + val.program + "' " + checked + "></input>" +
+                    "<label for='id" + key + "'>" + val.label + "</label></li>");
+            });
+            
+            $(choices_container).find("input").change(plot_according_to_choices);
+        }
+        
+        function plot_according_to_choices() {
+            var data = [];
+            $(choices_container).find("input:checked").each(
+                function () {
+                    var key = $(this).attr("value");
+                    if (key && dataset[key]) {
+                        data.push(dataset[key]);
+                    }
+                }
+            );
+
+            $.plot(chart_container, data, chart_settings);
+            
+
+            $(chart_container).bind("plothover", function (event, pos, item) {
+                if (item) {
+                    var x = item.datapoint[0];
+                    var y = item.datapoint[1].toFixed(4) + "s";
+                    if(chart_settings == memory_settings) {
+                        y = (item.datapoint[1]/1024/1024).toFixed(2) + " MiB";
+                    }
+
+                    var load_factor = item.series.data[item.dataIndex][2]
+                    if(load_factor == 0.0) {
+                        load_factor = "unknown"
+                    }
+                    
+                    $("#tooltip").html("" + y + " ; " + x + 
+                                        "<br\>" + load_factor + " load factor" +
+                                        "<br\>" + item.series.label)
+                                    .css({top: item.pageY+5, left: item.pageX+5})
+                                    .fadeIn(200);
+                } else {
+                    $("#tooltip").hide();
+                }        
+            });
+        }
+
+        plot_according_to_choices();
+    }
+    
+    
+    function plot_all_charts(redraw_only = false) {
+        plot_chart(chart_data['insert_random_shuffle_range_runtime'], '#insert_random_shuffle_range_runtime', '#insert_random_shuffle_range_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_random_shuffle_range_runtime'], '#read_random_shuffle_range_runtime', '#read_random_shuffle_range_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['insert_random_full_runtime'], '#insert_random_full_runtime', '#insert_random_full_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['insert_random_full_reserve_runtime'], '#insert_random_full_reserve_runtime', '#insert_random_full_reserve_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_random_full_runtime'], '#read_random_full_runtime', '#read_random_full_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_miss_random_full_runtime'], '#read_miss_random_full_runtime', '#read_miss_random_full_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_random_full_after_delete_runtime'], '#read_random_full_after_delete_runtime', '#read_random_full_after_delete_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['iteration_random_full_runtime'], '#iteration_random_full_runtime', '#iteration_random_full_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['delete_random_full_runtime'], '#delete_random_full_runtime', '#delete_random_full_runtime_choices', runtime_settings, redraw_only);
+        
+        plot_chart(chart_data['insert_small_string_runtime'], '#insert_small_string_runtime', '#insert_small_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['insert_small_string_reserve_runtime'], '#insert_small_string_reserve_runtime', '#insert_small_string_reserve_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_small_string_runtime'], '#read_small_string_runtime', '#read_small_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_miss_small_string_runtime'], '#read_miss_small_string_runtime', '#read_miss_small_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_small_string_after_delete_runtime'], '#read_small_string_after_delete_runtime', '#read_small_string_after_delete_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['delete_small_string_runtime'], '#delete_small_string_runtime', '#delete_small_string_runtime_choices', runtime_settings, redraw_only);
+
+        plot_chart(chart_data['insert_string_runtime'], '#insert_string_runtime', '#insert_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['insert_string_reserve_runtime'], '#insert_string_reserve_runtime', '#insert_string_reserve_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_string_runtime'], '#read_string_runtime', '#read_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_miss_string_runtime'], '#read_miss_string_runtime', '#read_miss_string_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['read_string_after_delete_runtime'], '#read_string_after_delete_runtime', '#read_string_after_delete_runtime_choices', runtime_settings, redraw_only);
+        plot_chart(chart_data['delete_string_runtime'], '#delete_string_runtime', '#delete_string_runtime_choices', runtime_settings, redraw_only);
+    }
+
+    $(function () {
+        // Set global choices boxes
+        var i = 0;
+        for(var program in programs) {
+            checked = '';
+            if(default_programs_show.indexOf(program) > -1) {
+                checked = 'checked';
+            }
+            
+            $("#global_choices").append("<li><input type='checkbox' id='global_choice_" + i + "' " + 
+                                        checked + "></input>" + programs[program] + "</li>");
+            $("#global_choice_" + i).change({name: program}, function(event) {
+                $("input[name='" + event.data.name + "']").prop('checked', this.checked).change();
+            });
+            i++;
+        }
+        
+        // Set select all link
+        $("#global_select_all_none").append("<a href='javascript:void(0);' id='global_select_all'>all</a> ");
+        $("#global_select_all").click(function() {
+            $("input").prop('checked', true);
+            plot_all_charts(true);
+        });
+
+        // Set select none link
+        $("#global_select_all_none").append(" <a href='javascript:void(0);' id='global_select_none'>none</a>");
+        $("#global_select_none").click(function() {
+            $("input").prop('checked', false);
+            plot_all_charts(true);
+        });
+        
+        // Draw charts
+        plot_all_charts();
+    });
+    
+</script>
+
+<style>
+    div.global {
+        margin: auto;
+        width: 800px;
+    }
+    div.global_select_all_none {
+        text-align: center;
+    }
+    div.chart {
+        width: 750px;
+        height: 500px;
+    }
+    div.xaxis-title {
+        width: 750px;
+        text-align: center;
+        font-style: italic;
+        font-size: small;
+        color: #666;
+    }
+    .choices li {
+        margin-left: 5%;
+        display: inline-block;
+        width: 45%;
+    }
+</style>
+
+
+<div class="global">
+
+<h2>Global selection</h2>
+<ul class="choices" id="global_choices"></ul>
+<div class="global_select_all_none" id="global_select_all_none"></div>
+
+<h2>Integers</h2>
+
+<p>For the integers tests, we use hash maps with int64_t as key and int64_t as value.</p>
+
+
+
+<h3>Random shuffle inserts: execution time (integers)</h3>
+
+<p>Before the test, we generate a vector with the values [0, nb_entries) and shuffle this vector. 
+Then for each value k in the vector, we insert the key-value pair (k, 1) in the hash map.</p>
+
+<div class="chart" id="insert_random_shuffle_range_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_random_shuffle_range_runtime_choices"></ul>
+
+
+<h3>Random full inserts: execution time (integers)</h3>
+
+<p>Before the test, we generate a vector of nb_entries size where each value is randomly taken from an uniform random number generator from all possible positive values an int64_t can hold. 
+Then for each value k in the vector, we insert the key-value pair (k, 1) in the hash map.</p>
+
+<div class="chart" id="insert_random_full_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_random_full_runtime_choices"></ul>
+
+
+<h3>Random full inserts with reserve: execution time (integers)</h3>
+
+<p>Same as the random full inserts test but the reserve method of the hash map is called beforehand to avoid any rehash during the insertion. 
+It provides a fair comparison even if the growth factor of each hash map is different.</p>
+
+<div class="chart" id="insert_random_full_reserve_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_random_full_reserve_runtime_choices"></ul>
+
+
+<h3>Random full deletes: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random full insert test. 
+We then delete each key one by one in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="delete_random_full_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="delete_random_full_runtime_choices"></ul>
+
+
+<h3>Random shuffle reads: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random shuffle inserts test. 
+We then read each key-value pair in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="read_random_shuffle_range_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_random_shuffle_range_runtime_choices"></ul>
+
+
+<h3>Random full reads: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random full inserts test. 
+We then read each key-value pair in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="read_random_full_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_random_full_runtime_choices"></ul>
+
+<h3>Random full reads misses: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random full inserts test. 
+We then generate another vector of nb_entries random elements different from the inserted elements and 
+we try to search for these unknown elements in the hash map.</p>
+
+<div class="chart" id="read_miss_random_full_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_miss_random_full_runtime_choices"></ul>
+
+
+<h3>Random full reads after deleting half: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random full inserts test 
+before deleting half of these values randomly. We then try to read all the original values in a 
+different order which will lead to 50% hits and 50% misses.</p>
+
+<div class="chart" id="read_random_full_after_delete_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_random_full_after_delete_runtime_choices"></ul>
+
+
+
+<h3>Random full iteration: execution time (integers)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the random full inserts test. 
+We then use the hash map iterators to read all the key-value pairs.</p>
+
+<div class="chart" id="iteration_random_full_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="iteration_random_full_runtime_choices"></ul>
+
+
+
+
+
+
+
+
+
+
+<h2>Small strings</h2>
+<p>For the small string tests, we use hash maps with std::string as key and int64_t as value.</p>
+
+<p>Each string is a random generated string of 15 alphanumeric characters (+1 for the null terminator). A generated key may look like "ju1AOoeWT3LdJxL".<p>
+
+<h3>Inserts: execution time (small strings)</h3>
+
+<p>For each entry in the range [0, nb_entries), we generate a string as key and insert it with the value 1.</p>
+
+<div class="chart" id="insert_small_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_small_string_runtime_choices"></ul>
+
+
+<h3>Inserts with reserve: execution time (small strings)</h3>
+
+<p>Same as the inserts test but the reserve method of the hash map is called beforehand to avoid any rehash during the insertion. 
+It provides a fair comparison even if the growth factor of each hash map is different.</p>
+
+<div class="chart" id="insert_small_string_reserve_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_small_string_reserve_runtime_choices"></ul>
+
+
+<h3>Deletes: execution time (small strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the hash map as in the inserts test. 
+We then delete each key one by one in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="delete_small_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="delete_small_string_runtime_choices"></ul>
+
+
+<h3>Reads: execution time (small strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the hash map as in the inserts test. 
+We then read each key-value pair in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="read_small_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_small_string_runtime_choices"></ul>
+
+
+<h3>Reads misses: execution time (small strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the inserts test. 
+We then generate nb_entries strings different from the inserted elements and 
+we try to search for these unknown elements in the hash map.</p>
+
+<div class="chart" id="read_miss_small_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_miss_small_string_runtime_choices"></ul>
+
+
+<h3>Reads after deleting half: execution time (small strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the inserts test before 
+deleting half of these values randomly. We then try to read all the original values in a 
+different order which will lead to 50% hits and 50% misses.</p>
+
+<div class="chart" id="read_small_string_after_delete_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_small_string_after_delete_runtime_choices"></ul>
+
+
+
+
+
+<h2>Strings</h2>
+<p>For the string tests, we use hash maps with std::string as key and int64_t as value.</p>
+
+<p>Each string is a random generated string of 50 alphanumeric characters (+1 for the null terminator). A generated key may look like "nv46iTRp7ur6UMbdgEkCHpoq7Qx7UU9Ta0u1ETdAvUb4LG6Xu6".<p>
+
+<h3>Inserts: execution time (strings)</h3>
+
+<p>For each entry in the range [0, nb_entries), we generate a string as key and insert it with the value 1.</p>
+
+<div class="chart" id="insert_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_string_runtime_choices"></ul>
+
+
+<h3>Inserts with reserve: execution time (strings)</h3>
+
+<p>Same as the inserts test but the reserve method of the hash map is called beforehand to avoid any rehash during the insertion. 
+It provides a fair comparison even if the growth factor of each hash map is different.</p>
+
+<div class="chart" id="insert_string_reserve_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="insert_string_reserve_runtime_choices"></ul>
+
+
+<h3>Deletes: execution time (strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the hash map as in the inserts test. 
+We then delete each key one by one in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="delete_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="delete_string_runtime_choices"></ul>
+
+
+<h3>Reads: execution time (strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the hash map as in the inserts test. 
+We then read each key-value pair in a different and random order than the one they were inserted.</p>
+
+<div class="chart" id="read_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_string_runtime_choices"></ul>
+
+
+<h3>Reads misses: execution time (strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the inserts test. 
+We then generate nb_entries strings different from the inserted elements and 
+we try to search for these unknown elements in the hash map.</p>
+
+<div class="chart" id="read_miss_string_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_miss_string_runtime_choices"></ul>
+
+
+<h3>Reads after deleting half: execution time (strings)</h3>
+
+<p>Before the test, we insert nb_entries elements in the same way as in the inserts test before deleting half of these values randomly. 
+We then try to read all the original values in a different order which will lead to 50% hits and 50% misses.</p>
+
+<div class="chart" id="read_string_after_delete_runtime"></div>
+<div class="xaxis-title">number of entries in hash table</div>
+<ul class="choices" id="read_string_after_delete_runtime_choices"></ul>
+
+
+</div>
+
+</body>
+</html>
+
