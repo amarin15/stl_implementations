@@ -24,9 +24,11 @@ set(INC_FOLDER   "${PROJECT_SOURCE_DIR}/include")
 set(TESTS_FOLDER "${PROJECT_SOURCE_DIR}/unit_tests")
 set(INC_FILES
     ${INC_FOLDER}/si_unordered_map.h
+    ${INC_FOLDER}/si_tuple.h
 )
 set(TESTS_FILES
     ${TESTS_FOLDER}/unordered_map_test.cpp
+    ${TESTS_FOLDER}/tuple_test.cpp
 )
 
 # Set up file tabs for Visual Studio.
