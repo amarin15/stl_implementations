@@ -16,7 +16,7 @@
 // - tie
 // - forward_as_tuple
 // - tuple_cat
-// - remaining comparison operators
+// - comparison operators
 //
 // Helper classes
 // - tuple_size
@@ -26,31 +26,68 @@
 
 // Member functions
 
-/*
-TEST(si_tuple, assignment_operator)
+TEST(si_tuple, copy_constructor)
 {
     // Given
-    //si::tuple<int, std::string, double> tpl = si::make_tuple(1, std::string("2"), 3.45);
+    si::tuple<int, double> tpl(1, 2.3);
 
     // When
-    //auto tpl_copy = tpl;
+    auto tpl_copy = tpl;
 
     // Then
-    //EXPECT_EQ(tpl_copy, tpl);
+    EXPECT_EQ(si::get<0>(tpl_copy), 1);
+    EXPECT_EQ(si::get<1>(tpl_copy), 2.3);
 }
 
-TEST(si_tuple, swap)
+TEST(si_tuple, move_constructor)
 {
     auto tpl = si::make_tuple(1, "2", 3.45);
+
+    auto tpl2 = std::move(tpl);
+
+    EXPECT_EQ(si::get<0>(tpl2), 1);
+    EXPECT_EQ(si::get<1>(tpl2), "2");
+    EXPECT_EQ(si::get<2>(tpl2), 3.45);
+}
+
+TEST(si_tuple, assignment_operator)
+{
+    si::tuple<int, double> tpl1 = si::make_tuple(1, 2.34);
+    si::tuple<int, double> tpl2 = si::make_tuple(10, 23.4);
+
+    tpl1 = tpl2;
+
+    EXPECT_EQ(si::get<0>(tpl1), 10);
+    EXPECT_EQ(si::get<1>(tpl1), 2.34);
+
+    si::get<0>(tpl1) = 5;
+    EXPECT_EQ(si::get<0>(tpl2), 10);
+
+    si::get<0>(tpl2) = 6;
+    EXPECT_EQ(si::get<0>(tpl1), 5);
+
+    tpl1 = std::move(tpl2);
+    EXPECT_EQ(si::get<0>(tpl1), 6);
+    EXPECT_EQ(si::get<1>(tpl1), 2.34);
+}
+
+/*
+TEST(si_tuple, swap)
+{
+    si::tuple<int, double> tpl = si::make_tuple(1, 3.45);
     auto tpl_copy = tpl;
-    si::get<0>(tpl_copy) = 10;
+    si::get<0>(tpl_copy) = 2;
+    si::get<1>(tpl_copy) = 6.9;
 
-    tpl.swap(tpl_copy);
+    std::swap(tpl, tpl_copy);
 
-    EXPECT_EQ(si::get<0>(tpl), 10);
+    EXPECT_EQ(si::get<0>(tpl), 2);
+    EXPECT_EQ(si::get<1>(tpl), 6.9);
     EXPECT_EQ(si::get<0>(tpl_copy), 1);
+    EXPECT_EQ(si::get<1>(tpl_copy), 3.45);
 }
 */
+
 
 // Non-member functions
 
@@ -91,6 +128,7 @@ TEST(si_tuple, get)
     EXPECT_EQ(si::get<0>(tpl), a);
     EXPECT_EQ(si::get<1>(tpl), b);
 }
+
 /*
 TEST(si_tuple, equality_operator)
 {
@@ -110,13 +148,16 @@ TEST(si_tuple, inequality_operator)
 
 TEST(si_tuple, std_swap)
 {
-    si::tuple<int, std::string, double> tpl = si::make_tuple(1, "2", 3.45);
+    si::tuple<int, double> tpl = si::make_tuple(1, 3.45);
     auto tpl_copy = tpl;
-    si::get<0>(tpl_copy) = 10;
+    si::get<0>(tpl_copy) = 2;
+    si::get<1>(tpl_copy) = 6.9;
 
     std::swap(tpl, tpl_copy);
 
-    EXPECT_EQ(si::get<0>(tpl), 10);
+    EXPECT_EQ(si::get<0>(tpl), 2);
+    EXPECT_EQ(si::get<1>(tpl), 6.9);
     EXPECT_EQ(si::get<0>(tpl_copy), 1);
+    EXPECT_EQ(si::get<1>(tpl_copy), 3.45);
 }
 */

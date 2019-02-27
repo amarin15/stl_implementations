@@ -3,10 +3,11 @@
 
 #include <utility> // std::forward
 
+
 namespace si {
 
-// If we wanted to implement an iterative version of tuple instead,
-// we would have used multiple inheritance instead of recursion.
+// If we want to implement an iterative version of tuple,
+// we can use multiple inheritance instead of recursion.
 // http://mitchnull.blogspot.com/2012/06/c11-tuple-implementation-details-part-1.html
 
 
@@ -20,6 +21,16 @@ struct tuple_leaf
 
     tuple_leaf(T&& t)
         : value(std::forward<T>(t))
+    {}
+
+    // copy constructor
+    tuple_leaf(const tuple_leaf<N, T>& other)
+        : value(other.value)
+    {}
+
+    // move constructor
+    tuple_leaf(tuple_leaf<N, T>&& other)
+        : value(std::move(other.value))
     {}
 };
 
@@ -36,15 +47,40 @@ struct tuple_impl<N>
 // Recursive specialization.
 template <size_t N, typename HeadT, typename ... TailTs>
 struct tuple_impl<N, HeadT, TailTs...>
-    : tuple_leaf<N, HeadT>         // inherit the N-th leaf value.
-    , tuple_impl<N + 1, TailTs...> // define recursively.
+    : public tuple_leaf<N, HeadT>         // inherit the N-th leaf value.
+    , public tuple_impl<N + 1, TailTs...> // define recursively.
 {
     tuple_impl<N, HeadT, TailTs...>(HeadT&& head, TailTs&&... tail)
         : tuple_leaf<N, HeadT>(std::forward<HeadT>(head))
         , tuple_impl<N + 1, TailTs...>(std::forward<TailTs>(tail)...)
+    {}
+
+    // copy constructor
+    tuple_impl<N, HeadT, TailTs...>(const tuple_impl<N, HeadT, TailTs...>& other)
+        : tuple_leaf<N, HeadT>(other)
+        , tuple_impl<N + 1, TailTs...>(other)
+    {}
+
+    // move constructor
+    tuple_impl<N, HeadT, TailTs...>(tuple_impl<N, HeadT, TailTs...>&& other)
+        : tuple_leaf<N, HeadT>(std::move(other))
+        , tuple_impl<N + 1, TailTs...>(std::move(other))
+    {}
+
+    // assignment operator
+    tuple_impl<N, HeadT, TailTs...>& operator=(const tuple_impl<N, HeadT, TailTs...>& other)
     {
+        this->tuple_leaf<N, HeadT>::value = other.tuple_leaf<N, HeadT>::value;
+        return *this;
+    }
+
+    tuple_impl<N, HeadT, TailTs...>& operator=(tuple_impl<N, HeadT, TailTs...>&& other)
+    {
+        this->tuple_leaf<N, HeadT>::value = std::move(other.tuple_leaf<N, HeadT>::value);
+        return *this;
     }
 };
+
 
 // Define tuple as a more convenient alias of tuple_impl.
 template <typename ... Ts>
