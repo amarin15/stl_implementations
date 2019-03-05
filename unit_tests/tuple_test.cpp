@@ -58,7 +58,7 @@ TEST(si_tuple, assignment_operator)
     tpl1 = tpl2;
 
     EXPECT_EQ(si::get<0>(tpl1), 10);
-    EXPECT_EQ(si::get<1>(tpl1), 2.34);
+    EXPECT_EQ(si::get<1>(tpl1), 23.4);
 
     si::get<0>(tpl1) = 5;
     EXPECT_EQ(si::get<0>(tpl2), 10);
@@ -79,7 +79,7 @@ TEST(si_tuple, swap)
     si::get<0>(tpl_copy) = 2;
     si::get<1>(tpl_copy) = 6.9;
 
-    std::swap(tpl, tpl_copy);
+    tpl.swap(tpl_copy);
 
     EXPECT_EQ(si::get<0>(tpl), 2);
     EXPECT_EQ(si::get<1>(tpl), 6.9);
