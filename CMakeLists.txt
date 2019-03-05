@@ -24,10 +24,12 @@ set(INC_FOLDER   "${PROJECT_SOURCE_DIR}/include")
 set(TESTS_FOLDER "${PROJECT_SOURCE_DIR}/unit_tests")
 set(INC_FILES
     ${INC_FOLDER}/si_unordered_map.h
+    ${INC_FOLDER}/si_flat_hash_map.h
     ${INC_FOLDER}/si_tuple.h
 )
 set(TESTS_FILES
     ${TESTS_FOLDER}/unordered_map_test.cpp
+    ${TESTS_FOLDER}/flat_hash_map_test.cpp
     ${TESTS_FOLDER}/tuple_test.cpp
 )
 
@@ -37,6 +39,13 @@ source_group(unit_tests FILES ${TESTS_FILES})
 
 # Tell the compiler to also search for includes in this location.
 include_directories(${INC_FOLDER})
+
+
+# Also include the boost headers location (for endianness).
+find_package(Boost 1.68)
+if(Boost_FOUND)
+    include_directories( ${Boost_INCLUDE_DIRS} )
+endif()
 
 
 # Add the subdirectory containing the CMakeLists.txt for gtest.

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -37,7 +38,7 @@ template<
     // with C++11. You can find a C+11 implementation of is_invocable here:
     // https://github.com/gcc-mirror/gcc/blob/d3a3029ca7489cb168d493de3d695809e84ffb0f/libstdc%2B%2B-v3/include/std/type_traits#L2661
     static_assert(std::is_invocable<Hash, Key>::value
-                 , "std::hash must be invocable with a Key type");
+                 , "Hash function must be invocable with a Key type");
 
     // Forward declarations
     struct _Iterator;
@@ -47,13 +48,14 @@ template<
 public:
     // ~~ Types ~~
 
-    typedef Key                     key_type;
-    typedef T                       mapped_type;
-    typedef std::pair<const Key, T> value_type;
-    typedef Hash                    hasher;
-    typedef KeyEqual                key_equal;
-    typedef _Iterator               iterator;
-    typedef _ConstIterator          const_iterator;
+    using key_type        = Key;
+    using mapped_type     = T;
+    using value_type      = std::pair<const Key, T>;
+    using difference_type = std::ptrdiff_t;
+    using hasher          = Hash;
+    using key_equal       = KeyEqual;
+    using iterator        = _Iterator;
+    using const_iterator  = _ConstIterator;
 
 
 private:
@@ -73,7 +75,7 @@ private:
 
         _NodeBase<_NodeType>& operator=(const _NodeBase<_NodeType>& other) = default;
 
-        // we might destroy a _NodeType* through a _NodeBase<_NodeType>*
+        // We might destroy a _NodeType* through a _NodeBase<_NodeType>*
         virtual ~_NodeBase<_NodeType>()
         {}
     };
@@ -91,9 +93,9 @@ private:
     {
     public:
         // LegacyForwardIterator
-        typedef std::forward_iterator_tag   iterator_category;
-        typedef unordered_map::value_type   value_type;
-        typedef std::ptrdiff_t              difference_type;
+        using iterator_category = std::forward_iterator_tag;
+        using value_type        = typename unordered_map::value_type;
+        using difference_type   = typename unordered_map::difference_type;
 
         _Node* cur;
 
@@ -102,7 +104,7 @@ private:
             : cur(node)
         {}
 
-        // caller's job to check for nullptr
+        // Caller's job to check for nullptr.
         void increment() noexcept
         {
             cur = cur->next;
@@ -116,7 +118,7 @@ private:
 
         bool operator==(const _IteratorBase& other) const noexcept
         {
-            // compare pointers, not values
+            // Compare pointers, not values.
             return cur == other.cur;
         }
 
@@ -128,15 +130,15 @@ private:
 
     struct _Iterator : public _IteratorBase
     {
-        typedef value_type* pointer;
-        typedef value_type& reference;
+        using pointer   = value_type*;
+        using reference = value_type&;
 
         explicit _Iterator(_Node* node) noexcept
             : _IteratorBase(node)
         {}
 
-        // caller's job to check the below interface
-        // is not called on nullptr (unordered_map.end())
+        // Caller's job to check the below interface is
+        // not called on nullptr (unordered_map.end()).
         reference operator*() const noexcept
         {
             return this->cur->value;
@@ -156,15 +158,15 @@ private:
 
     struct _ConstIterator : public _IteratorBase
     {
-        typedef const value_type* pointer;
-        typedef const value_type& reference;
+        using pointer   = const value_type*;
+        using reference = const value_type&;
 
         explicit _ConstIterator(_Node* node) noexcept
             : _IteratorBase(node)
         {}
 
-        // caller's job to check the below interface
-        // is not called on nullptr (unordered_map.end())
+        // Caller's job to check the below interface is
+        // not called on nullptr (unordered_map.end()).
         reference operator*() const noexcept
         {
             return this->cur->value;
@@ -203,9 +205,9 @@ private:
     hasher                          d_hasher;
     key_equal                       d_key_equal;
 
+
 public:
     // ~~ Constructors ~~
-
 
     // (1) default constructor
     // No allocation for the table's elements is made.
@@ -237,11 +239,11 @@ public:
 
     // (3) copy constructor
     unordered_map(const unordered_map& other)
-        : d_bucket_count(other.bucket_count())
-        , d_size(0)
-        , d_max_load_factor(other.max_load_factor())
-        , d_before_begin(nullptr)
-        , d_buckets(d_bucket_count, nullptr)
+      : d_bucket_count(other.bucket_count())
+      , d_size(0)
+      , d_max_load_factor(other.max_load_factor())
+      , d_before_begin(nullptr)
+      , d_buckets(d_bucket_count, nullptr)
     {
         // use insert to allocate new memory
         // instead of copying pointers.
@@ -250,11 +252,11 @@ public:
 
     // (4) move constructor
     unordered_map(unordered_map&& other)
-        : d_bucket_count(other.d_bucket_count)
-        , d_size(other.d_size)
-        , d_max_load_factor(other.d_max_load_factor)
-        , d_before_begin(std::move(other.d_before_begin))
-        , d_buckets(std::move(other.d_buckets))
+      : d_bucket_count(std::move(other.d_bucket_count))
+      , d_size(std::move(other.d_size))
+      , d_max_load_factor(std::move(other.d_max_load_factor))
+      , d_before_begin(std::move(other.d_before_begin))
+      , d_buckets(std::move(other.d_buckets))
     {
         // avoid deleting the nodes which we moved from other
         other.d_size = 0;
@@ -582,13 +584,6 @@ public:
         return d_bucket_count;
     }
 
-    size_t max_bucket_count() const noexcept
-    {
-        // could potentially find a better implementation.
-        // ptrdiff_t is signed
-        return std::numeric_limits<ptrdiff_t>::max();
-    }
-
     size_t bucket_size(const size_t bucket_num) const
     {
         assert(bucket_num < d_bucket_count);
@@ -831,7 +826,7 @@ private:
 
     bool _rehash_if_needed()
     {
-        if ((d_size + 1) / float(d_bucket_count) > d_max_load_factor)
+        if (d_size + 1 > d_max_load_factor * d_bucket_count)
         {
             // STL usually uses first prime greater than 2 * bucket count.
             rehash(d_bucket_count * 2);

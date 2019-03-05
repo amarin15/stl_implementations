@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 #include <si_unordered_map.h>
+#include <si_flat_hash_map.h>
 
 
 // Constructors, Capacity
@@ -16,9 +17,8 @@ void test_integral_keys()
     MapType<unsigned int, int> m1;
     EXPECT_TRUE(m1.empty());
 
-    MapType<unsigned int, int> m2(15);
+    MapType<int, float> m2(15);
     EXPECT_TRUE(m2.empty());
-    // std::unordered_map will use first prime number >= given one
     EXPECT_TRUE(m2.bucket_count() >= 15);
 }
 
@@ -66,9 +66,9 @@ void test_from_range()
 
     MapType<unsigned int, int> m(v.begin(), v.end() - 1);
     EXPECT_TRUE(m.size() == 2); // 4 out of 5 have equal keys
+    EXPECT_TRUE(m[7] == 3);     // v[1] is (7,3)
     EXPECT_TRUE(m[2] == 3);     // v[4] is (2,3)
     EXPECT_TRUE(m.bucket_count() >= m.size());
-    EXPECT_TRUE(m.max_load_factor() == 1);
     EXPECT_TRUE(m.load_factor() <= m.max_load_factor());
 }
 
@@ -97,7 +97,7 @@ template <template<typename...> class MapType>
 void test_move_constructor()
 {
     MapType<unsigned int, int> m1;
-    int n = 5;
+    int n = 10;
     for (int i = 0; i < n; i ++)
         m1[i] = i * 10;
     size_t bucket_count = m1.bucket_count();
@@ -119,7 +119,6 @@ void test_from_initializer_list()
     EXPECT_TRUE(m[2] == 20);
     EXPECT_TRUE(m[3] == 30);
     EXPECT_TRUE(m.bucket_count() >= m.size());
-    EXPECT_TRUE(m.max_load_factor() == 1);
 }
 
 template <template<typename...> class MapType>
@@ -173,14 +172,29 @@ void test_assignment_operator()
 template <template<typename...> class MapType>
 void test_iterators()
 {
-    MapType<unsigned int, int> m { {1, 10}, {2, 20}, {3, 30} };
+    MapType<int, int> m;
+    int n = 10;
+    for (int i = 0; i < n; i ++)
+        m.emplace(i, i * 10);
 
     // test both non-const and const overloads of .begin()
     EXPECT_TRUE(m.cbegin() == m.begin());
-    EXPECT_TRUE(m.cbegin() == ( const_cast<const MapType<unsigned int, int>&>(m) ).begin());
+    EXPECT_TRUE(m.cbegin() == ( const_cast<const MapType<int, int>&>(m) ).begin());
 
     EXPECT_EQ(std::distance(m.begin(),  m.end()) , m.size());
     EXPECT_EQ(std::distance(m.cbegin(), m.cend()), m.size());
+
+    std::multiset<std::pair<int, int>> s;
+    for (const auto& p : m)
+        s.insert(p);
+
+    EXPECT_EQ(s.size(), n);
+    auto it = s.begin();
+    for (int i = 0; i < n; i ++)
+    {
+        EXPECT_EQ(*it, std::make_pair(i, i * 10));
+        std::advance(it, 1);
+    }
 }
 
 
@@ -309,13 +323,11 @@ template <template<typename...> class MapType>
 void test_erase_interface()
 {
     MapType<std::string, std::string> m { {"10", "10"}, {"20", "20"}, {"30", "30"} };
-    using iterator = typename decltype(m)::iterator;
     using const_iterator = typename decltype(m)::const_iterator;
 
     // (1) const_iterator
-    iterator it = m.erase(m.cbegin());
+    m.erase(m.cbegin());
     EXPECT_TRUE(m.size() == 2);
-    EXPECT_TRUE(it == m.begin());
 
     // (2) const_iterator range
     for (int i = 0; i < 5; i ++)
@@ -326,9 +338,8 @@ void test_erase_interface()
 
     const_iterator first = std::next(m.cbegin(), 4);
     const_iterator last  = std::next(m.cbegin(), 6);
-    it = m.erase(first, last);
+    m.erase(first, last);
     EXPECT_TRUE(m.size() == 5);
-    EXPECT_TRUE(it == last);
 
     // (3) const key_type&
     std::string new_key = "key";
@@ -366,21 +377,6 @@ void test_erase_sentinels()
             ++ num_keys;
     }
     EXPECT_EQ(num_keys, m.size());
-
-    m.erase(std::next(m.cbegin(), 75), m.cend());
-    EXPECT_EQ(m.size(), num_keys - 75);
-
-    for (int i = max_keys; i < max_keys + 125; i ++)
-        m.emplace(std::to_string(i), val);
-    num_keys = 0;
-    for (int i = 0; i < max_keys + 125; i ++)
-    {
-        const std::string key(std::to_string(i));
-        if (m.find(key) != m.end())
-            ++ num_keys;
-    }
-    EXPECT_EQ(num_keys, m.size());
-    EXPECT_EQ(num_keys, max_keys);
 }
 
 template <template<typename...> class MapType>
@@ -416,67 +412,46 @@ template <template<typename...> class MapType>
 void test_lookup()
 {
     MapType<std::string, std::string> m;
-    using iterator = typename decltype(m)::iterator;
 
     // operator[]
-    m["10"] = "10"; // insert and rehash
-    EXPECT_TRUE(m.size() == 1);
+    m["10"] = "10"; // insert (and rehash for si::unordered_map)
+    EXPECT_EQ(m.size(), 1);
     m["10"] = "20"; // overwrite
-    EXPECT_TRUE(m.size() == 1);
+    EXPECT_EQ(m.size(), 1);
     EXPECT_TRUE(m.bucket_count() >= 1);
-    m["11"] = "22"; // trigger a rehash
-    EXPECT_TRUE(m.size() == 2);
+    m["11"] = "22"; // trigger a rehash for si::unordered_map
+    EXPECT_EQ(m.size(), 2);
     EXPECT_TRUE(m.bucket_count() >= 2);
+
+    const std::string key("11");
+    EXPECT_EQ(m[key], "22");
+    EXPECT_EQ(m["11"], "22");;
 
     // at
     std::string val = m.at("10");
-    EXPECT_TRUE(val == "20");
-    try
-    {
-        val = m.at("100");
-        EXPECT_TRUE(0 == 1);
-    }
-    catch (const std::out_of_range& err)
-    {
-    }
-
-    // operator[]
-    const std::string key("11");
-    EXPECT_TRUE(m[key] == "22");
-    EXPECT_TRUE(m["11"] == "22");
+    EXPECT_EQ(val, "20");
+    EXPECT_THROW(m.at("100"), std::out_of_range);
 
     // count
-    EXPECT_TRUE(m.count("10") == 1);
-    EXPECT_TRUE(m.count("20") == 0);
+    EXPECT_EQ(m.count("10"), 1);
+    EXPECT_EQ(m.count("20"), 0);
 
     // find
+    using iterator = typename decltype(m)::iterator;
     iterator it = m.find("10");
-    EXPECT_TRUE(it->first == "10");
+    EXPECT_EQ(it->first, "10");
     it = m.find("20");
-    EXPECT_TRUE(it == m.end());
+    EXPECT_EQ(it, m.end());
 
     // equal_range
     std::pair<iterator, iterator> ret = m.equal_range("10");
     it = m.find("10");
-    EXPECT_TRUE(ret.first == it);
-    EXPECT_TRUE(ret.second == std::next(it));
+    EXPECT_EQ(*(ret.first), *it);
+    EXPECT_EQ(ret.second, std::next(it));
 
     ret = m.equal_range("20");
     EXPECT_TRUE(ret.first == m.end());
     EXPECT_TRUE(ret.second == m.end());
-}
-
-
-// Bucket interface
-template <template<typename...> class MapType>
-void test_bucket_interface()
-{
-    MapType<int, int> m(1);
-
-    EXPECT_TRUE(m.bucket_count() >= 1); // implementation defined
-    EXPECT_TRUE(m.max_bucket_count() > m.bucket_count());
-    EXPECT_TRUE(m.bucket_size(0) == 0);
-    EXPECT_TRUE(m.bucket(1) == m.bucket(1)); // just test it's exposed
 }
 
 
@@ -487,12 +462,11 @@ void test_hash_policy()
     MapType<int, int> m;
 
     EXPECT_TRUE(m.load_factor() == 0);
-    EXPECT_TRUE(m.max_load_factor() == 1);
 
     m.rehash(10);
     EXPECT_TRUE(m.bucket_count() >= 10);
     // Initially we only had 1 bucket, so inserting 2 elements would
-    // segfault if d_buckets has a size smaller than the new bucket count.
+    // segfault if d_buckets had a size smaller than the new bucket count.
     m.emplace(1, 1);
     m.emplace(2, 2);
 
@@ -532,26 +506,33 @@ template <template<typename...> class MapType>
 void test_map_interface()
 {
     test_constructors<MapType>();
+
     test_assignment_operator<MapType>();
     test_iterators<MapType>();
+
     test_modifiers<MapType>();
     test_lookup<MapType>();
-    test_bucket_interface<MapType>();
+
     test_hash_policy<MapType>();
     test_observers<MapType>();
     test_non_member_functions<MapType>();
 }
 
 
-// First confirm the unit tests are correct.
+// Confirm the unit tests are correct.
 TEST(std_unordered_map, interface)
 {
     test_map_interface<std::unordered_map>();
 }
 
-// Then validate our implementation using the same tests.
+// Validate our implementations using the same tests.
 TEST(si_unordered_map, interface)
 {
     test_map_interface<si::unordered_map>();
+}
+
+TEST(si_flat_hash_map, interface)
+{
+    test_map_interface<si::flat_hash_map>();
 }
 
