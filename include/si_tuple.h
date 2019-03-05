@@ -66,19 +66,6 @@ struct tuple_impl<N, HeadT, TailTs...>
         : tuple_leaf<N, HeadT>(std::move(other))
         , tuple_impl<N + 1, TailTs...>(std::move(other))
     {}
-
-    // assignment operator
-    tuple_impl<N, HeadT, TailTs...>& operator=(const tuple_impl<N, HeadT, TailTs...>& other)
-    {
-        this->tuple_leaf<N, HeadT>::value = other.tuple_leaf<N, HeadT>::value;
-        return *this;
-    }
-
-    tuple_impl<N, HeadT, TailTs...>& operator=(tuple_impl<N, HeadT, TailTs...>&& other)
-    {
-        this->tuple_leaf<N, HeadT>::value = std::move(other.tuple_leaf<N, HeadT>::value);
-        return *this;
-    }
 };
 
 
