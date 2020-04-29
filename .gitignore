@@ -36,3 +36,10 @@
 
 # CMake
 build
+
+# VS Code
+.vscode
+
+# local files
+TODO.txt
+
