@@ -28,6 +28,7 @@ set(INC_FILES
     ${INC_FOLDER}/si_shared_ptr.h
     ${INC_FOLDER}/si_tuple.h
     ${INC_FOLDER}/si_spmc_queue.h
+    ${INC_FOLDER}/si_ring_buffer.h
 )
 set(TESTS_FILES
     ${TESTS_FOLDER}/unordered_map_test.cpp
@@ -35,6 +36,7 @@ set(TESTS_FILES
     ${TESTS_FOLDER}/shared_ptr_test.cpp
     ${TESTS_FOLDER}/tuple_test.cpp
     ${TESTS_FOLDER}/spmc_queue_test.cpp
+    ${TESTS_FOLDER}/ring_buffer.cpp
 )
 
 # Set up file tabs for Visual Studio.
