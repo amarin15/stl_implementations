@@ -1,11 +1,9 @@
-mkdir build
-cd build
+@REM Generate solution and build it with debug symbols
+cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
 
-@REM Generate solution for Visual Studio and build it
-cmake ..
-cmake --build .
+cd build
+make
 
 @REM Run unit tests
 ctest --output-on-failure
 cd ..
-
