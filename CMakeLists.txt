@@ -5,13 +5,14 @@ project(stl_implementations)
 # Build with C++17 (std::is_invocable is used).
 set (CMAKE_CXX_STANDARD 17)
 
-# Enable warnings.
+# Warnings are not errors
+# (we have a known Wself-assign-overloaded in the shared_ptr unit test)
 if (MSVC)
-    # warning level 4 and all warnings as errors
-    add_compile_options(/W4 /WX)
+    # all warnings that aren't off by default
+    # https://docs.microsoft.com/en-us/cpp/preprocessor/compiler-warnings-that-are-off-by-default
+    add_compile_options(/W4)
 else()
-    # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+    add_compile_options(-Wall -pedantic)
 endif()
 
 
@@ -54,16 +55,15 @@ if(Boost_FOUND)
 endif()
 
 
-# Add the subdirectory containing the CMakeLists.txt for gtest.
-add_subdirectory(googletest)
-include_directories("${PROJECT_SOURCE_DIR}/googletest/googletest/include")
+# Add the conan dependencies.
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 # Add the unit tests executable target.
 add_executable(run_unit_tests ${TESTS_FILES} ${INC_FILES})
-target_link_libraries(run_unit_tests gtest_main)
+target_link_libraries(run_unit_tests ${CONAN_LIBS})
 
 # Add a test to be run by ctest. This enables us to run the
 # unit tests from the build scripts.
 enable_testing()
-add_test(UnitTests run_unit_tests)
-
+add_test(UnitTests bin/run_unit_tests)
