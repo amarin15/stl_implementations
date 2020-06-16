@@ -2,8 +2,8 @@
 cmake_minimum_required (VERSION 3.1)
 project(stl_implementations)
 
-# Build with C++17 (std::is_invocable is used).
-set (CMAKE_CXX_STANDARD 17)
+# We need at least C++17 (std::is_invocable is used).
+set (CMAKE_CXX_STANDARD 20)
 
 # Warnings are not errors
 # (we have a known Wself-assign-overloaded in the shared_ptr unit test)
