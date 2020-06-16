@@ -1,4 +1,21 @@
+ifeq ($(OS),Windows_NT)
+	RM = rd /s /q
+else
+	RM = rm -rf
+endif
+
+
 all:
-	./build.sh
+	mkdir -p build
+
+	# Install dependencies, generate cmake solution,
+	# build with debug symbols and run unit tests.
+	cd build \
+		&& conan install .. \
+		&& cmake -DCMAKE_BUILD_TYPE=Debug -S .. \
+		&& make \
+		&& ctest --output-on-failure
+
+.PHONY: clean
 clean:
-	rm -rf build
+	${RM} build

@@ -9,3 +9,11 @@ Currently implemented:
 - [`tuple`](https://github.com/amarin15/stl_implementations/blob/master/include/si_tuple.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/tuple_test.cpp).
 - [Single producer multiple consumer queue](https://github.com/amarin15/stl_implementations/blob/master/include/si_spmc_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/spmc_queue_test.cpp).
 
+### Build steps
+- `make` (should work on both Linux/MacOS as well as Windows)
+  - creates a `build` folder if it doesn't already exist
+  - resolves dependencies using [Conan](https://conan.io/)
+  - generates [CMake](https://cmake.org/) solution
+  - builds with [Debug](https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html) symbols
+  - runs unit tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
+- `make clean` removes the build folder
