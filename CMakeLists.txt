@@ -47,14 +47,6 @@ source_group(unit_tests FILES ${TESTS_FILES})
 # Tell the compiler to also search for includes in this location.
 include_directories(${INC_FOLDER})
 
-
-# Also include the boost headers location (for endianness).
-find_package(Boost 1.68)
-if(Boost_FOUND)
-    include_directories( ${Boost_INCLUDE_DIRS} )
-endif()
-
-
 # Add the conan dependencies.
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()

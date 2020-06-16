@@ -1,5 +1,5 @@
 # Install conan dependencies
-mkdir build
+mkdir -p build
 cd build
 conan install ..
 
