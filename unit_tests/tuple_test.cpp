@@ -31,26 +31,26 @@ TEST(si_tuple, move_constructor)
     EXPECT_EQ(si::get<2>(tpl2), 3.45);
 }
 
-// TEST(si_tuple, assignment_operator)
-// {
-//     si::tuple<int, double> tpl1 = si::make_tuple(1, 2.34);
-//     si::tuple<int, double> tpl2 = si::make_tuple(10, 23.4);
+TEST(si_tuple, assignment_operator)
+{
+    si::tuple<int, double> tpl1 = si::make_tuple(1, 2.34);
+    si::tuple<int, double> tpl2 = si::make_tuple(10, 23.4);
 
-//     tpl1 = tpl2;
+    tpl1 = tpl2;
 
-//     EXPECT_EQ(si::get<0>(tpl1), 10);
-//     EXPECT_EQ(si::get<1>(tpl1), 23.4);
+    EXPECT_EQ(si::get<0>(tpl1), 10);
+    EXPECT_EQ(si::get<1>(tpl1), 23.4);
 
-//     si::get<0>(tpl1) = 5;
-//     EXPECT_EQ(si::get<0>(tpl2), 10);
+    si::get<0>(tpl1) = 5;
+    EXPECT_EQ(si::get<0>(tpl2), 10);
 
-//     si::get<0>(tpl2) = 6;
-//     EXPECT_EQ(si::get<0>(tpl1), 5);
+    si::get<0>(tpl2) = 6;
+    EXPECT_EQ(si::get<0>(tpl1), 5);
 
-//     tpl1 = std::move(tpl2);
-//     EXPECT_EQ(si::get<0>(tpl1), 6);
-//     EXPECT_EQ(si::get<1>(tpl1), 23.4);
-// }
+    tpl1 = std::move(tpl2);
+    EXPECT_EQ(si::get<0>(tpl1), 6);
+    EXPECT_EQ(si::get<1>(tpl1), 23.4);
+}
 
 TEST(si_tuple, make_tuple)
 {
@@ -85,6 +85,16 @@ TEST(si_tuple, get_const_ref)
     const std::tuple<int, double, char> tpl(1, 2.3, '4');
 
     EXPECT_DOUBLE_EQ(std::get<1>(tpl), 2.3);
+}
+
+TEST(si_tuple, tuple_element)
+{
+    auto tpl = si::make_tuple(1, 2.3, '4');
+
+    using actual_type = typename si::tuple_element<1, decltype(tpl)>::type;
+
+    bool same_type = std::is_same<double, actual_type>();
+    EXPECT_TRUE(same_type);
 }
 
 // TEST(si_tuple, tie)

@@ -2,6 +2,7 @@
 #define SI_TUPLE_H
 
 #include <type_traits>
+#include <utility>
 
 
 namespace si {
@@ -16,21 +17,22 @@ namespace si {
 
 // Primary template.
 // Empty tuple will have a default np-op constructor.
-template <typename... Tail>
+template <class... Tail>
 class tuple
 {};
 
-template <typename Head, typename... Tail>
-class tuple<Head, Tail...> : tuple<Tail...> // inherit values in Tail
+template <class Head, class... Tail>
+class tuple<Head, Tail...> : public tuple<Tail...> // inherit values in Tail
 {
 public:
-    tuple (Head head, Tail... tail)
+    // Constructors
+    tuple (const Head& head, const Tail&... tail)
         : BaseType(tail...) // Call the base constructor and instantiate it.
         , d_head(head)
     {}
 
-    template <typename... OtherTail>
-    tuple (const tuple<OtherTail...>& other)
+    template <class... Ts>
+    tuple (const tuple<Ts...>& other)
         : BaseType(other.tail())
         , d_head(other.head())
     {}
@@ -43,7 +45,7 @@ private:
     // alias the base which contains the Tail elements
     using BaseType = tuple<Tail...>;
 
-    template <typename Ret, size_t N>
+    template <class Ret, size_t N>
     friend class getNth;
 
     Head& head()
@@ -70,36 +72,36 @@ private:
 
 
 // ~~ make_tuple ~~
-template <typename... Tail>
+
+template <class... Tail>
 tuple<Tail...> make_tuple(Tail&&... tail)
 {
-    return tuple<Tail...>(tail...);
+    return tuple<Tail...>(std::forward<Tail>(tail)...);
 }
 
+
+// ~~ tuple_element ~~
+
+// Select the N-th type from a tuple.
+// general case; never instantiated
+template <size_t N, class>
+struct tuple_element;
+
+template <size_t N, class Head, class... Tail>
+struct tuple_element <N, tuple<Head, Tail...>>
+    : tuple_element <N - 1, tuple<Tail...>>
+{};
+
+template <class Head, class ... Tail>
+struct tuple_element<0, tuple<Head, Tail...>>
+{
+    using type = Head;
+};
 
 
 // ~~ get ~~
 
-
-// Helper to select a type from N types.
-// general case; never instantiated
-template <size_t N, typename... Tail>
-struct select;
-
-template <typename T, typename ... Tail>
-struct select<0, T, Tail...>
-{
-    using type = T;
-};
-
-template <size_t N, typename T, typename ... Tail>
-struct select <N, T, Tail...>
-    : select <N - 1, Tail...>
-{};
-
-
-
-// Helper to recursively get N-th value from a tuple.
+// Helper to get N-th value from a tuple.
 template <typename Ret, size_t N>
 struct getNth
 {
@@ -135,19 +137,19 @@ struct getNth<Ret, 0>
 
 // get that returns a reference
 template <size_t N, typename Head, typename... Tail>
-typename select<N, Head, Tail...>::type&
+typename tuple_element<N, tuple<Head, Tail...>>::type&  // Ret&
 get(tuple<Head, Tail...>& t)
 {
-    using Ret = typename select<N, Head, Tail...>::type;
+    using Ret = typename tuple_element<N, tuple<Head, Tail...>>::type;
     return getNth<Ret, N>::get(t);
 }
 
 // get that returns a const reference
 template <size_t N, typename Head, typename... Tail>
-const typename select<N, Head, Tail...>::type&
+const typename tuple_element<N, tuple<Head, Tail...>>::type& // const Ret&
 get(const tuple<Head, Tail...>& t)
 {
-    using Ret = typename select<N, Head, Tail...>::type;
+    using Ret = typename tuple_element<N, tuple<Head, Tail...>>::type;
     return getNth<Ret, N>::get(t);
 }
 
@@ -155,4 +157,3 @@ get(const tuple<Head, Tail...>& t)
 } // namespace si
 
 #endif
-
