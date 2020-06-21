@@ -6,7 +6,7 @@
 
 TEST (si_ring_buffer, basic_ops)
 {
-    CircularBuffer<int> cb(3);
+    si::ring_buffer<int> cb(3);
     assert(0 == cb.size());
     try
     {

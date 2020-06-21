@@ -1,11 +1,16 @@
+#ifndef SI_RING_BUFFER_H
+#define SI_RING_BUFFER_H
+
 #include <stdexcept>
+
+namespace si {
 
 // TODO multi threaded using atomics
 template<typename T>
-class CircularBuffer
+class ring_buffer
 {
 public:
-    CircularBuffer(size_t capacity)
+    ring_buffer(size_t capacity)
         : d_head(0)
         , d_size(0)
         , d_capacity(capacity)
@@ -13,7 +18,7 @@ public:
         d_data = (T*)malloc(capacity * sizeof(T));
     }
 
-    ~CircularBuffer()
+    ~ring_buffer()
     {
         if (d_data)
             free(d_data);
@@ -57,3 +62,7 @@ private:
     size_t d_capacity;
     T*     d_data;
 };
+
+} // namespace si
+
+#endif
