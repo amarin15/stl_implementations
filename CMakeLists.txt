@@ -27,6 +27,7 @@ set(INC_FILES
     ${INC_FOLDER}/si_unordered_map.h
     ${INC_FOLDER}/si_flat_hash_map.h
     ${INC_FOLDER}/si_shared_ptr.h
+    ${INC_FOLDER}/si_unique_ptr.h
     ${INC_FOLDER}/si_tuple.h
     ${INC_FOLDER}/si_spmc_queue.h
     ${INC_FOLDER}/si_ring_buffer.h
@@ -35,6 +36,7 @@ set(TESTS_FILES
     ${TESTS_FOLDER}/unordered_map_test.cpp
     ${TESTS_FOLDER}/flat_hash_map_test.cpp
     ${TESTS_FOLDER}/shared_ptr_test.cpp
+    ${TESTS_FOLDER}/unique_ptr_test.cpp
     ${TESTS_FOLDER}/tuple_test.cpp
     ${TESTS_FOLDER}/spmc_queue_test.cpp
     ${TESTS_FOLDER}/ring_buffer.cpp
