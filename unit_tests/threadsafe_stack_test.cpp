@@ -38,7 +38,7 @@ TEST(ThreadsafeStackShould, PopBySharedPtr)
 
     auto str_sptr = s.pop();
 
-    EXPECT_TRUE(str_sptr);
+    ASSERT_TRUE(str_sptr);
     EXPECT_EQ(*str_sptr, val);
 }
 
@@ -78,7 +78,6 @@ TEST(ThreadsafeStackShould, BeThreadSafe)
                 }
             }
 
-            // std::cout << vals.size() << " values were returned by shared_ptr.\n";
             return vals;
         };
 
@@ -99,7 +98,6 @@ TEST(ThreadsafeStackShould, BeThreadSafe)
                 }
             }
 
-            // std::cout << vals.size() << " values were returned by reference.\n";
             return vals;
         };
 
