@@ -39,7 +39,7 @@ set(TESTS_FILES
     ${TESTS_FOLDER}/unique_ptr_test.cpp
     ${TESTS_FOLDER}/tuple_test.cpp
     ${TESTS_FOLDER}/spmc_queue_test.cpp
-    ${TESTS_FOLDER}/ring_buffer.cpp
+    ${TESTS_FOLDER}/ring_buffer_test.cpp
 )
 
 # Set up file tabs for Visual Studio.
