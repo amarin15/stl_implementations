@@ -10,10 +10,10 @@ STL replacements:
 - [`tuple`](https://github.com/amarin15/stl_implementations/blob/master/include/si_tuple.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/tuple_test.cpp).
 
 Thread-safe containers:
-- [Circular buffer](https://github.com/amarin15/stl_implementations/blob/master/include/si_ring_buffer.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/ring_buffer_test.cpp).
+- [Threadsafe stack](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_stack_test.cpp).
+- [Threadsafe queue](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_queue_test.cpp).
 - [Single producer multiple consumer queue](https://github.com/amarin15/stl_implementations/blob/master/include/si_spmc_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/spmc_queue_test.cpp).
-- [Threadsafe queue](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/si_threadsafe_queue_test.cpp).
-- [Threadsafe stack](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/si_threadsafe_stack_test.cpp).
+- [Circular buffer](https://github.com/amarin15/stl_implementations/blob/master/include/si_ring_buffer.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/ring_buffer_test.cpp).
 
 ### Build steps
 - `make` (should work on both Linux/MacOS as well as Windows)
