@@ -2,103 +2,108 @@
 #define SI_THREADSAFE_UNORDERED_MAP_H
 
 #include <list>
-#include <mutex>
+#include <shared_mutex>
 #include <utility>
 #include <vector>
 
 namespace si {
 
+// Hide the bucket type in an anonymous namespace so it's only visible
+// in this translation unit. If we made it a private class inside the map
+// then we would have one bucket_type class for each specialization of Hash.
+namespace {
+
+template <typename Key, typename Value>
+class bucket
+{
+public:
+    Value find(const Key& k, const Value& default_val) const noexcept
+    {
+        for (const auto& p : d_nodes)
+            if (p.first == k)
+                return p.second;
+        return default_val;
+    }
+
+    void insert(const Key& k, const Value& val)
+    {
+        for (const auto& p : d_nodes)
+            if (p.first == k)
+                return;
+        d_nodes.push_back(std::make_pair(k, val));
+    }
+
+    void insert_or_update(const Key& k, const Value& val)
+    {
+        for (auto& p : d_nodes)
+            if (p.first == k)
+            {
+                p.second = val;
+                return;
+            }
+        d_nodes.push_back(std::make_pair(k, val));
+    }
+
+    void erase(const Key& k)
+    {
+        for (auto it = d_nodes.begin(); it != d_nodes.end(); ++ it)
+            if (it->first == k)
+            {
+                d_nodes.erase(it);
+                return;
+            }
+    }
+
+private:
+    std::list<std::pair<Key, Value>> d_nodes;
+    mutable std::shared_mutex        d_mutex;
+};
+
+} // close anonymous namespace
+
 template<
     typename Key
-  , typename T
+  , typename Value
   , typename Hash = std::hash<Key>
 > class threadsafe_unordered_map
 {
 public:
-    threadsafe_unordered_map<Key, T>(size_t num_buckets = 4, double max_load_factor = 0.8)
-        : d_size(0)
-        , d_max_load_factor(max_load_factor)
-        , d_buckets(num_buckets)
-        , d_locks(num_buckets)
-        , d_size_lock()
+    threadsafe_unordered_map<Key, Value>(size_t num_buckets = 5)
+        : d_buckets(num_buckets)
+        , d_hasher(Hash())
     {}
 
-    typename std::list<std::pair<Key, T>>::iterator insert(const Key& k, const T& val)
+    // If the value is not found, return default_value
+    Value find(const Key& k, const Value& default_value = Value())
     {
-        size_t bucket = get_bucket(k);
-
-        std::unique_lock<std::mutex> ulock(d_locks[bucket]);
-
-        // don't insert if already present.
-        // needs to be locked as well, so a different thread doesn't insert the same element
-        // between this check and the following insert.
-        auto &b = d_buckets[bucket];
-        for (auto it = b.begin(); it != b.end(); ++it)
-            if (it->first == k)
-                return it;
-
-        if ((d_size + 1) / d_buckets.size() > d_max_load_factor)
-            rehash();
-
-        d_buckets[bucket].push_back(std::make_pair(k, val));
-        ulock.unlock();
-
-        // make sure there are no race conditions between reading the value of the size
-        // and updating it with the new size
-        std::lock_guard<std::mutex> guard(d_size_lock);
-        d_size ++;
-        return std::prev(d_buckets[bucket].end());
+        return get_bucket(k).find(k, default_value);
     }
 
-    T& operator[](const Key& k)
+    void insert(const Key& k, const Value& val)
     {
-        auto it = insert(k, T());
-        return it->second;
+        get_bucket(k).insert(k, val);
     }
 
-    bool erase(const Key& k)
+    void insert_or_update(const Key& k, const Value& val)
     {
-        size_t bucket = get_bucket(k);
-
-        auto &b = d_buckets[bucket];
-        for (auto it = b.begin(); it != b.end(); ++it)
-        {
-            if (it->first == k)
-            {
-                std::unique_lock<std::mutex> ulock(d_locks[bucket]);
-                d_buckets[bucket].erase(it);
-                ulock.unlock();
-
-                std::lock_guard<std::mutex> guard(d_size_lock);
-                d_size--;
-                return true;
-            }
-        }
-
-        return false;
+        get_bucket(k).insert_or_update(k, val);
     }
 
-    void rehash()
+    void erase(const Key& k)
     {
-        // not implemented
-    }
-
-    size_t size() const noexcept
-    {
-        return d_size;
+        get_bucket(k).erase(k);
     }
 
 private:
-    size_t get_bucket(const Key& k) const
+    using bucket_type = bucket<Key, Value>;
+
+    bucket_type& get_bucket(const Key& k)
     {
-        return Hash()(k) % d_buckets.size();;
+        return d_buckets[d_hasher(k) % d_buckets.size()];
     }
 
-    size_t d_size;
-    double d_max_load_factor;
-    std::vector<std::list<std::pair<Key, T>>> d_buckets;
-    std::vector<std::mutex> d_locks;
-    std::mutex d_size_lock;
+    std::vector<bucket_type>  d_buckets;
+    Hash                      d_hasher;
 };
 
 } // namespace si
