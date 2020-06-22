@@ -2,7 +2,6 @@
 
 #include <future>
 #include <stack>
-#include <thread>
 #include <unordered_set>
 
 #include <si_spinlock_mutex.h>
@@ -14,12 +13,12 @@ TEST (SpinlockMutexShould, LockAndUnlock)
     for (int i = 0; i < num_elems; i ++)
         s.push(i);
 
-    si::spinlock_mutex sm;
-    auto pop = [&sm, &s]() {
+    si::spinlock_mutex m;
+    auto pop = [&m, &s]() {
         std::unordered_set<int> popped;
         while (true)
         {
-            std::unique_lock<std::remove_reference<decltype(sm)>::type> ulock(sm);
+            std::unique_lock<std::remove_reference<decltype(m)>::type> ulock(m);
             if (s.empty())
                 break;
             int val = s.top();
