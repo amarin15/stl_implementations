@@ -2,6 +2,7 @@
 #define SI_THREADSAFE_UNORDERED_MAP_H
 
 #include <list>
+#include <memory>
 #include <shared_mutex>
 #include <utility>
 #include <vector>
@@ -17,46 +18,59 @@ template <typename Key, typename Value>
 class bucket
 {
 public:
-    Value find(const Key& k, const Value& default_val) const noexcept
+    std::shared_ptr<Value> find(const Key& k) const
     {
+        std::shared_lock<std::shared_mutex> slock(d_mutex);
         for (const auto& p : d_nodes)
             if (p.first == k)
                 return p.second;
-        return default_val;
+
+        return nullptr;
     }
 
-    void insert(const Key& k, const Value& val)
+    void insert(const Key& k, const std::shared_ptr<Value>& val)
     {
+        std::lock_guard<std::shared_mutex> guard(d_mutex);
         for (const auto& p : d_nodes)
             if (p.first == k)
                 return;
-        d_nodes.push_back(std::make_pair(k, val));
+
+        d_nodes.emplace_back(k, val);
     }
 
-    void insert_or_update(const Key& k, const Value& val)
+    void insert_or_update(const Key& k, const std::shared_ptr<Value>& val)
     {
+        std::lock_guard<std::shared_mutex> guard(d_mutex);
         for (auto& p : d_nodes)
+        {
             if (p.first == k)
             {
                 p.second = val;
                 return;
             }
-        d_nodes.push_back(std::make_pair(k, val));
+        }
+
+        d_nodes.emplace_back(k, val);
     }
 
     void erase(const Key& k)
     {
+        std::lock_guard<std::shared_mutex> guard(d_mutex);
         for (auto it = d_nodes.begin(); it != d_nodes.end(); ++ it)
+        {
             if (it->first == k)
             {
                 d_nodes.erase(it);
                 return;
             }
+        }
     }
 
 private:
-    std::list<std::pair<Key, Value>> d_nodes;
-    mutable std::shared_mutex        d_mutex;
+    // Hold shared_ptrs so we avoid copying large value objects.
+    // Also allows the bucket to hold objects that are not copyable.
+    std::list<std::pair<Key, std::shared_ptr<Value>>> d_nodes;
+    mutable std::shared_mutex                         d_mutex;
 };
 
 } // close anonymous namespace
@@ -74,17 +88,18 @@ public:
     {}
 
     // If the value is not found, return default_value
-    Value find(const Key& k, const Value& default_value = Value())
+    std::shared_ptr<Value> find(const Key& k) const
     {
-        return get_bucket(k).find(k, default_value);
+        return get_bucket(k).find(k);
     }
 
-    void insert(const Key& k, const Value& val)
+    // Don't return references or iterators to avoid race conditions
+    void insert(const Key& k, const std::shared_ptr<Value>& val)
     {
         get_bucket(k).insert(k, val);
     }
 
-    void insert_or_update(const Key& k, const Value& val)
+    void insert_or_update(const Key& k, const std::shared_ptr<Value>& val)
     {
         get_bucket(k).insert_or_update(k, val);
     }
@@ -99,11 +114,11 @@ private:
 
     bucket_type& get_bucket(const Key& k)
     {
-        return d_buckets[d_hasher(k) % d_buckets.size()];
+        return d_buckets[ d_hasher(k) % d_buckets.size() ];
     }
 
-    std::vector<bucket_type>  d_buckets;
-    Hash                      d_hasher;
+    std::vector<bucket_type> d_buckets;
+    Hash                     d_hasher;
 };
 
 } // namespace si
