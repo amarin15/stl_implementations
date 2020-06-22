@@ -112,9 +112,17 @@ public:
 private:
     using bucket_type = bucket<Key, Value>;
 
-    bucket_type& get_bucket(const Key& k)
+    // find uses a const bucket_type&
+    const bucket_type& get_bucket(const Key& k) const
     {
         return d_buckets[ d_hasher(k) % d_buckets.size() ];
+    }
+
+    // re-use const logic
+    bucket_type& get_bucket(const Key& k)
+    {
+        return const_cast<bucket_type&>(
+            static_cast< const threadsafe_unordered_map<Key, Value> * >(this)->get_bucket(k));
     }
 
     std::vector<bucket_type> d_buckets;
