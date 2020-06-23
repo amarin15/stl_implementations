@@ -11,7 +11,8 @@ STL implementations:
 
 Thread-safe implementations:
 - [Thread-safe unordered_map with locking per bucket](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_unordered_map.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_unordered_map_test.cpp).
-- [Thread-safe stack with locking](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_stack_test.cpp).
+- [Thread-safe stack with locking](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_stack_test.cpp)
+- [Lock-free stack](https://github.com/amarin15/stl_implementations/blob/master/include/si_lockfree_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/lockfree_stack_test.cpp).
 - [Thread-safe queue with locking](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_queue_test.cpp).
 - [Single producer multiple consumer queue](https://github.com/amarin15/stl_implementations/blob/master/include/si_spmc_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/spmc_queue_test.cpp).
 - [Ring buffer](https://github.com/amarin15/stl_implementations/blob/master/include/si_ring_buffer.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/ring_buffer_test.cpp).

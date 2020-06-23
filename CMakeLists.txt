@@ -31,6 +31,7 @@ set(INC_FILES
     ${INC_FOLDER}/si_tuple.h
     ${INC_FOLDER}/si_threadsafe_unordered_map.h
     ${INC_FOLDER}/si_threadsafe_stack.h
+    ${INC_FOLDER}/si_lockfree_stack.h
     ${INC_FOLDER}/si_threadsafe_queue.h
     ${INC_FOLDER}/si_spmc_queue.h
     ${INC_FOLDER}/si_ring_buffer.h
@@ -44,6 +45,7 @@ set(TESTS_FILES
     ${TESTS_FOLDER}/tuple_test.cpp
     ${TESTS_FOLDER}/threadsafe_unordered_map_test.cpp
     ${TESTS_FOLDER}/threadsafe_stack_test.cpp
+    ${TESTS_FOLDER}/lockfree_stack_test.cpp
     ${TESTS_FOLDER}/threadsafe_queue_test.cpp
     ${TESTS_FOLDER}/spmc_queue_test.cpp
     ${TESTS_FOLDER}/ring_buffer_test.cpp

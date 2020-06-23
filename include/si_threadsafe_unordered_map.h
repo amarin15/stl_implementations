@@ -82,7 +82,7 @@ template<
 > class threadsafe_unordered_map
 {
 public:
-    threadsafe_unordered_map<Key, Value>(size_t num_buckets = 5)
+    threadsafe_unordered_map<Key, Value, Hash>(size_t num_buckets = 5)
         : d_buckets(num_buckets)
         , d_hasher(Hash())
     {}
@@ -122,7 +122,7 @@ private:
     bucket_type& get_bucket(const Key& k)
     {
         return const_cast<bucket_type&>(
-            static_cast< const threadsafe_unordered_map<Key, Value> * >(this)->get_bucket(k));
+            static_cast< const threadsafe_unordered_map<Key, Value, Hash> * >(this)->get_bucket(k));
     }
 
     std::vector<bucket_type> d_buckets;
