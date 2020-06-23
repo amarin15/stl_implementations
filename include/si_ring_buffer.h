@@ -5,7 +5,6 @@
 
 namespace si {
 
-// TODO multi threaded using atomics
 template<typename T>
 class ring_buffer
 {
