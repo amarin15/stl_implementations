@@ -5,6 +5,7 @@
 
 namespace si {
 
+// lock-free example https://ferrous-systems.com/blog/lock-free-ring-buffer/
 template<typename T>
 class ring_buffer
 {

@@ -11,7 +11,7 @@ all:
 	# Install dependencies, generate cmake solution,
 	# build with debug symbols and run unit tests.
 	cd build \
-		&& conan install .. \
+		&& conan install --build=missing .. \
 		&& cmake -DCMAKE_BUILD_TYPE=Debug -S .. \
 		&& make \
 		&& ctest --output-on-failure
