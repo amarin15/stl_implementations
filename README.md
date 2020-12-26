@@ -19,9 +19,9 @@ Lock-free
 - [Lock-free stack](https://github.com/amarin15/stl_implementations/blob/master/include/si_lockfree_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/lockfree_stack_test.cpp).
 
 Other
+- [`malloc`](https://github.com/amarin15/stl_implementations/blob/master/include/si_malloc.h) using first-fit with coalescing. Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/malloc_test.cpp).
 - [Ring buffer](https://github.com/amarin15/stl_implementations/blob/master/include/si_ring_buffer.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/ring_buffer_test.cpp).
 - [Spinlock mutex](https://github.com/amarin15/stl_implementations/blob/master/include/si_spinlock_mutex.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/spinlock_mutex_test.cpp).
-- [malloc](https://github.com/amarin15/stl_implementations/blob/master/include/si_malloc.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/malloc_test.cpp).
 
 ### Build steps
 - `make` (should work on both Linux/MacOS as well as Windows)
