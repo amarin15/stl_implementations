@@ -108,10 +108,17 @@ inline size_t max(size_t a, size_t b)
     return a > b ? a : b;
 }
 
-inline void* alloc_sbrk(size_t size)
+inline CHUNK_ADDR_T alloc_sbrk(size_t size)
 {
-    return sbrk(max(SBRK_ALLOC_SIZE,
-                    size + 2 * sizeof(CHUNK_SIZE_T) + sizeof(CHUNK_ADDR_T *)));
+    void* allocated = sbrk(max(SBRK_ALLOC_SIZE, size));
+
+    if (allocated == (void*)-1)
+        return NULL;
+
+    // Create a chunk from the first size bytes
+    set_size(allocated, size);
+
+    return allocated;
 }
 
 // Assumes that cur_chunk has enough space to hold the requested size.
@@ -166,14 +173,13 @@ void* malloc(size_t size)
     if (! first_free_chunk)
     {
         // Try to allocate memory and return if system fails
-        void* allocated = alloc_sbrk(required_size);
-        if (allocated == (void*)-1)
+        CHUNK_ADDR_T chunk = alloc_sbrk(required_size);
+        if (chunk == NULL)
             return NULL;
 
-        first_free_chunk = &allocated;
-        set_size(*first_free_chunk, required_size);
         // Also mark the first free chunk as the last free chunk
-        mark_last_free(*first_free_chunk);
+        mark_last_free(chunk);
+        first_free_chunk = &chunk;
     }
 
     // Find the first free chunk that contains enough memory to fit the request
@@ -188,12 +194,10 @@ void* malloc(size_t size)
         if (cur == NULL)
         {
             // Try to allocate memory and return if system fails
-            void* allocated = alloc_sbrk(required_size);
-            if (allocated == (void*)-1)
+            cur = alloc_sbrk(required_size);
+            if (cur == NULL)
                 return NULL;
 
-            cur = allocated;
-            set_size(cur, required_size);
             break;
         }
     }
