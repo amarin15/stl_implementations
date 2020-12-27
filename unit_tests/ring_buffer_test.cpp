@@ -23,19 +23,8 @@ TEST (si_ring_buffer, basic_ops)
 
     cb.push_back(11);
     cb.push_back(20);
-    cb.push_back(30);
-    try
-    {
-        cb.push_back(40);
-        assert(0 == 1);
-    }
-    catch(const std::exception& err)
-    {}
 
     assert(11 == cb.pop_front());
-    cb.push_back(100); // test wrap around
     assert(20 == cb.pop_front());
-    assert(30 == cb.pop_front());
-    assert(100 == cb.pop_front());
     assert(0 == cb.size());
 }
