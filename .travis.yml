@@ -26,8 +26,8 @@ matrix:
 before_script:
   - mkdir -p build
   - cd build
-  - conan install ..
-  - cmake ..
+  - conan install -s cppstd=gnu17 -s build_type=Release --build=missing ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -S ..
 
 script:
   - make && ctest --output-on-failure
