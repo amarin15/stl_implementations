@@ -1,5 +1,8 @@
 #pragma once
 
+#include <unistd.h>
+#include <assert.h>
+
 namespace si {
 
 /*
@@ -30,7 +33,8 @@ First-fit with coalescing malloc implementation.
         - size & 0x04 can potentially be used later for is mmap-ed
     - the minimum chunk size is 16 bytes on 32-bit systems and 24 bytes on 64-bit systems
     - only free chunks have a pointer to next free chunk
-        - this points to the size (not the unallocated space)
+        - this points to the first size (not the unallocated space)
+    - the size of each chunk includes the overhead
 
 - malloc (size)
     - start with pointer to first free chunk
@@ -67,14 +71,138 @@ First-fit with coalescing malloc implementation.
         - use multiple arenas for multithreaded environments (to avoid contention on the mutex)
 */
 
+
+#define CHUNK_SIZE_T    size_t
+#define CHUNK_ADDR_T    void *
+#define MIN_ALLOC_SIZE  (sizeof(CHUNK_SIZE_T) + sizeof(CHUNK_ADDR_T *))
+#define SBRK_ALLOC_SIZE (4096 * 16)
+
+// pointer to the address of the first free chunk
+static CHUNK_ADDR_T* first_free_chunk = NULL;
+
+// returns a pointer to the address of the next available free chunk
+inline CHUNK_ADDR_T* next_free(CHUNK_ADDR_T free_chunk)
+{
+    return (CHUNK_ADDR_T*)(static_cast<char*>(free_chunk) + sizeof(CHUNK_SIZE_T));
+}
+
+inline CHUNK_SIZE_T get_size_from_beginning(CHUNK_ADDR_T free_chunk)
+{
+    return *(static_cast<CHUNK_SIZE_T *>(free_chunk));
+}
+
+// Set the size of the free chunk at the beginning and at the end
+void set_size(CHUNK_ADDR_T free_chunk, size_t size)
+{
+    *(size_t*)(free_chunk) = size;
+    *(size_t*)(static_cast<char*>(free_chunk) + size - sizeof(CHUNK_SIZE_T)) = size;
+}
+
+inline void mark_last_free(CHUNK_ADDR_T free_chunk)
+{
+    *next_free(free_chunk) = NULL;
+}
+
+inline size_t max(size_t a, size_t b)
+{
+    return a > b ? a : b;
+}
+
+inline void* alloc_sbrk(size_t size)
+{
+    return sbrk(max(SBRK_ALLOC_SIZE,
+                    size + 2 * sizeof(CHUNK_SIZE_T) + sizeof(CHUNK_ADDR_T *)));
+}
+
+// Assumes that cur_chunk has enough space to hold the requested size.
+// Potentially breaks cur_chunk into an allocated chunk and a free chunk.
+//  Adds the free chunk to the free chunk list and returns the address of
+//  the allocated space in the allocated chunk.
+void* split(CHUNK_ADDR_T cur_chunk, size_t required_size, CHUNK_ADDR_T prev_free_chunk)
+{
+    // Check for an exact match.
+    // The chunk size also includes the overhead.
+    const CHUNK_SIZE_T chunk_size = get_size_from_beginning(cur_chunk);
+    void* allocated_addr = (void*)(static_cast<char*>(cur_chunk) + sizeof(CHUNK_SIZE_T));
+    if (chunk_size == required_size)
+        return allocated_addr;
+
+    // Confirm that we have enough space for the allocated chunk.
+    assert(chunk_size >= required_size);
+
+    // Try to create a free chunk from the remaining space
+    const size_t remaining_size = chunk_size - required_size;
+    // If we can't fit a free chunk, this space will be wasted
+    if (remaining_size >= MIN_ALLOC_SIZE + sizeof(CHUNK_SIZE_T))
+    {
+        // Set the size including the overhead of the new free chunk
+        CHUNK_ADDR_T free_chunk = (CHUNK_ADDR_T)(static_cast<char*>(cur_chunk) + required_size);
+        set_size(free_chunk, remaining_size);
+
+        // Set the pointer to the next free chunk
+        *next_free(free_chunk) = *next_free(cur_chunk);
+
+        // Update the next pointer of the previous chunk
+        if (prev_free_chunk != NULL)
+            *next_free(prev_free_chunk) = free_chunk;
+    }
+
+    // Set the size of the allocated chunk and return the address of the allocated space
+    *(size_t*)(cur_chunk) = required_size;
+    return allocated_addr;
+}
+
 void* malloc(size_t size)
 {
-    return NULL;
+    if (size == 0)
+        return NULL;
+
+    // Ensure we allocate at least the minimum space required to hold a free chunk
+    if (size < MIN_ALLOC_SIZE)
+        size = MIN_ALLOC_SIZE;
+    const size_t required_size = size + sizeof(CHUNK_SIZE_T);
+
+    // Check if there is no free memory
+    if (! first_free_chunk)
+    {
+        // Try to allocate memory and return if system fails
+        void* allocated = alloc_sbrk(required_size);
+        if (allocated == (void*)-1)
+            return NULL;
+
+        first_free_chunk = &allocated;
+        set_size(*first_free_chunk, required_size);
+        // Also mark the first free chunk as the last free chunk
+        mark_last_free(*first_free_chunk);
+    }
+
+    // Find the first free chunk that contains enough memory to fit the request
+    CHUNK_ADDR_T cur = *first_free_chunk;
+    CHUNK_ADDR_T prev = NULL;
+    while (get_size_from_beginning(cur) < required_size)
+    {
+        prev = cur;
+        cur = *next_free(cur);
+
+        // If this is the last chunk
+        if (cur == NULL)
+        {
+            // Try to allocate memory and return if system fails
+            void* allocated = alloc_sbrk(required_size);
+            if (allocated == (void*)-1)
+                return NULL;
+
+            cur = allocated;
+            set_size(cur, required_size);
+            break;
+        }
+    }
+
+    return split(cur, required_size, prev);
 }
 
 void free(void* ptr)
 {
-    (void)ptr;
 }
 
 } // namespace si
