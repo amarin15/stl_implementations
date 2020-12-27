@@ -80,8 +80,7 @@ First-fit with coalescing malloc implementation.
 #define CONTROL_MASK    0x07
 
 // Pointer to the address of the first free chunk
-static CHUNK_ADDR_T* first_free_chunk = NULL;
-static CHUNK_ADDR_T* last_free_chunk = NULL;
+static CHUNK_ADDR_T first_free_chunk = NULL;
 
 // Ensures alignment
 inline size_t next_aligned(size_t size)
@@ -123,7 +122,6 @@ inline void set_size_free_chunk(CHUNK_ADDR_T free_chunk, size_t size)
 inline void mark_last_free(CHUNK_ADDR_T free_chunk)
 {
     *next_free(free_chunk) = NULL;
-    last_free_chunk = &free_chunk;
 }
 
 
@@ -208,9 +206,9 @@ void* split(CHUNK_ADDR_T cur_chunk, size_t required_size, CHUNK_ADDR_T prev_free
     set_size_at_beginning(cur_chunk, required_size | allocated_size_mask);
 
     // If this was the only free chunk, update first_free_chunk
-    const bool was_first_free_chunk = (cur_chunk == *first_free_chunk);
+    const bool was_first_free_chunk = (cur_chunk == first_free_chunk);
     if (was_first_free_chunk)
-        first_free_chunk = next_free(*first_free_chunk);
+        first_free_chunk = *next_free(first_free_chunk);
 
     // The current chunk is not free, so next's P bit will be 0
     CHUNK_SIZE_T next_P_bit = 0x00;
@@ -241,7 +239,7 @@ void* split(CHUNK_ADDR_T cur_chunk, size_t required_size, CHUNK_ADDR_T prev_free
             updated_prev_free_next = true;
 
             if (was_first_free_chunk)
-                first_free_chunk = &free_chunk;
+                first_free_chunk = free_chunk;
         }
     }
 
@@ -277,13 +275,13 @@ void* malloc(size_t size)
         if (chunk == NULL)
             return NULL;
 
-        first_free_chunk = &chunk;
+        first_free_chunk = chunk;
     }
 
     // Find the first free chunk that contains enough memory to fit the request
-    CHUNK_ADDR_T cur_free = *first_free_chunk;
+    CHUNK_ADDR_T cur_free = first_free_chunk;
     CHUNK_ADDR_T prev_free = NULL;
-    while (get_size_from_beginning(cur_free) < required_size)
+    while ((get_size_from_beginning(cur_free) & ~CONTROL_MASK) < required_size)
     {
         prev_free = cur_free;
         cur_free = *next_free(cur_free);
@@ -302,7 +300,8 @@ void* malloc(size_t size)
             if (cur_free == NULL)
                 return NULL;
 
-            // TODO: Update the next pointer of the previous last free chunk
+            // Update the next pointer of the previous free chunk
+            *next_free(prev_free) = cur_free;
             break;
         }
     }
@@ -357,53 +356,47 @@ void free(void* ptr)
     // Set the P bit of the next chunk because this is a free chunk
     update_chunk_P_bit(coalesced_end, 0x01);
 
-    // Update first_free_chunk and last_free_chunk
-    // and the current chunk's next free pointer
+    // Update first_free_chunk and the current chunk's next free pointer
     if (!first_free_chunk)
     {
-        first_free_chunk = &coalesced_start;
+        first_free_chunk = coalesced_start;
         mark_last_free(first_free_chunk);
         *next_free(coalesced_start) = NULL;
     }
-    else if (coalesced_start < *first_free_chunk)
+    else if (coalesced_start < first_free_chunk)
     {
-        *next_free(coalesced_start) = *first_free_chunk;
-        first_free_chunk = &coalesced_start;
+        *next_free(coalesced_start) = first_free_chunk;
+        first_free_chunk = coalesced_start;
     }
-    else if (coalesced_start == *first_free_chunk)
+    else if (coalesced_start == first_free_chunk)
     {
-        *next_free(coalesced_start) = *next_free(*first_free_chunk);
-        if (last_free_chunk == first_free_chunk)
-            last_free_chunk = &coalesced_start;
-        first_free_chunk = &coalesced_start;
+        *next_free(coalesced_start) = *next_free(first_free_chunk);
+        first_free_chunk = coalesced_start;
     }
     else // coalesced_start > *first_free_chunk
     {
-        // The last free chunk can't be NULL since the first_free_chunk wasn't NULL
-        assert(last_free_chunk != NULL);
-
         // Update the previous free chunk's next pointer.
         // Maybe this could be improved so we don't have to walk the entire free chunk list.
-        CHUNK_ADDR_T* cur = next_free(*first_free_chunk);
-        CHUNK_ADDR_T* prev = first_free_chunk;
+        CHUNK_ADDR_T cur = *next_free(first_free_chunk);
+        CHUNK_ADDR_T prev = first_free_chunk;
         bool updated_prev_free_next = false;
         while (cur)
         {
-            if (*cur > coalesced_start)
+            if (cur > coalesced_start)
             {
-                *next_free(*prev) = coalesced_start;
+                *next_free(prev) = coalesced_start;
                 updated_prev_free_next = true;
                 break;
             }
 
             prev = cur;
-            cur = next_free(*cur);
+            cur = next_free(cur);
         }
 
         // If this is the last free chunk
         if (!updated_prev_free_next)
         {
-            *next_free(*prev) = coalesced_start;
+            *next_free(prev) = coalesced_start;
             mark_last_free(coalesced_start);
         }
     }
