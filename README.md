@@ -1,4 +1,4 @@
-# STL implementations  [![Build Status](https://travis-ci.org/amarin15/stl_implementations.svg?branch=master)](https://travis-ci.org/amarin15/stl_implementations)
+# STL implementations
 
 Created with an educational purpose in mind.
 
