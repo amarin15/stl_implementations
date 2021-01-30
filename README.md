@@ -8,6 +8,8 @@ STL implementations:
 - [`shared_ptr`](https://github.com/amarin15/stl_implementations/blob/master/include/si_shared_ptr.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/shared_ptr_test.cpp).
 - [`unique_ptr`](https://github.com/amarin15/stl_implementations/blob/master/include/si_unique_ptr.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/unique_ptr_test.cpp).
 - [`tuple`](https://github.com/amarin15/stl_implementations/blob/master/include/si_tuple.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/tuple_test.cpp).
+- [`malloc`](https://github.com/amarin15/stl_implementations/blob/master/include/si_malloc.h) using first-fit with coalescing. Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/malloc_test.cpp).
+- [`function`](https://github.com/amarin15/stl_implementations/blob/master/include/si_function.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/function_test.cpp).
 
 Thread-safe using locks:
 - [Thread-safe unordered_map with locking per bucket](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_unordered_map.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_unordered_map_test.cpp).
@@ -19,7 +21,6 @@ Lock-free
 - [Lock-free stack](https://github.com/amarin15/stl_implementations/blob/master/include/si_lockfree_stack.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/lockfree_stack_test.cpp).
 
 Other
-- [`malloc`](https://github.com/amarin15/stl_implementations/blob/master/include/si_malloc.h) using first-fit with coalescing. Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/malloc_test.cpp).
 - [Ring buffer](https://github.com/amarin15/stl_implementations/blob/master/include/si_ring_buffer.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/ring_buffer_test.cpp).
 - [Spinlock mutex](https://github.com/amarin15/stl_implementations/blob/master/include/si_spinlock_mutex.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/spinlock_mutex_test.cpp).
 
