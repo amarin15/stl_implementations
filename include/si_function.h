@@ -13,7 +13,7 @@ struct callable_base
     virtual ~callable_base() {}
 
     virtual Ret invoke(Args...) = 0;
-    virtual std::unique_ptr<callable_base<Ret, Args...>> clone() = 0;
+    virtual std::unique_ptr<callable_base<Ret, Args...>> clone() const = 0;
 };
 
 template<typename F, typename Ret, typename ... Args>
@@ -29,7 +29,7 @@ struct callable : callable_base<Ret, Args...>
         return d_f(args...);
     }
 
-    std::unique_ptr<callable_base<Ret, Args...>> clone() override
+    std::unique_ptr<callable_base<Ret, Args...>> clone() const override
     {
         return std::make_unique<callable<F, Ret, Args...>>(d_f);
     }
@@ -53,11 +53,13 @@ public:
         : d_callable(other.d_callable ? other.d_callable->clone() : nullptr)
     {}
 
-    function(function&& other) = default;
+    function(function&& other)
+    {
+        d_callable = other.d_callable ? std::move(other.d_callable) : nullptr;
+    }
 
     Ret operator()(Args... args)
     {
-        // TODO: bad_function_call exception
         return d_callable->invoke(args...);
     }
 };
