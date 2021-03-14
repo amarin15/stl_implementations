@@ -38,6 +38,7 @@ set(INC_FILES
     ${INC_FOLDER}/si_spinlock_mutex.h
     ${INC_FOLDER}/si_malloc.h
     ${INC_FOLDER}/si_function.h
+    ${INC_FOLDER}/si_priority_queue.h
 )
 set(TESTS_FILES
     ${TESTS_FOLDER}/unordered_map_test.cpp
@@ -54,6 +55,7 @@ set(TESTS_FILES
     ${TESTS_FOLDER}/spinlock_mutex_test.cpp
     ${TESTS_FOLDER}/malloc_test.cpp
     ${TESTS_FOLDER}/function_test.cpp
+    ${TESTS_FOLDER}/priority_queue_test.cpp
 )
 
 # Set up file tabs for Visual Studio.

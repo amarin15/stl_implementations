@@ -10,6 +10,7 @@ STL implementations:
 - [`tuple`](https://github.com/amarin15/stl_implementations/blob/master/include/si_tuple.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/tuple_test.cpp).
 - [`malloc`](https://github.com/amarin15/stl_implementations/blob/master/include/si_malloc.h) using first-fit with coalescing. Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/malloc_test.cpp).
 - [`function`](https://github.com/amarin15/stl_implementations/blob/master/include/si_function.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/function_test.cpp).
+- [`priority queue`](https://github.com/amarin15/stl_implementations/blob/master/include/si_priority_queue.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/priority_queue_test.cpp).
 
 Thread-safe using locks:
 - [Thread-safe unordered_map with locking per bucket](https://github.com/amarin15/stl_implementations/blob/master/include/si_threadsafe_unordered_map.h). Unit tests [here](https://github.com/amarin15/stl_implementations/blob/master/unit_tests/threadsafe_unordered_map_test.cpp).
